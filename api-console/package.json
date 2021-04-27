@@ -1,0 +1,54 @@
+{
+  "name": "vs-code-api-console",
+  "description": "The API Console package for Visual Studio Code.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Yury Palyanitsa"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deiteris/api-contractor.git"
+  },
+  "dependencies": {
+    "api-console": "^6.4.9",
+    "fs-extra": "^9.1.0"
+  },
+  "devDependencies": {
+    "@open-wc/building-rollup": "^1.10.0",
+    "@open-wc/eslint-config": "^4.3.0",
+    "@types/fs-extra": "^9.0.11",
+    "deepmerge": "^4.2.2",
+    "eslint": "^7.25.0",
+    "eslint-config-prettier": "^8.3.0",
+    "husky": "^6.0.0",
+    "lint-staged": "^10.5.4",
+    "postcss": "^8.2.12",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.45.2",
+    "rollup-plugin-cpy": "^2.0.1",
+    "rollup-plugin-postcss": "^4.0.0",
+    "uglify-js": "^3.13.4"
+  },
+  "scripts": {
+    "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
+    "format:eslint": "eslint --ext .js,.html . --fix --ignore-path .gitignore",
+    "lint": "npm run lint:eslint",
+    "format": "npm run format:eslint",
+    "build": "npm run build:vendor && rimraf dist && rollup -c rollup.config.js",
+    "build:vendor": "node tasks/prepare.js"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}

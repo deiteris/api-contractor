@@ -1,0 +1,16 @@
+coverage/
+test/
+demo/
+build/
+dist/
+docs/
+gen-tsd.json
+CONTRIBUTING.md
+.travis.yml
+karma.*
+husky.*
+commitlint.*
+.*
+*.config.*
+prettier.config.js
+*.vsix
