@@ -1,4 +1,4 @@
-# API Contractor for Visual Studio Code
+# API Contractor for Visual Studio Code [![Version](https://vsmarketplacebadge.apphb.com/version-short/deiteris.vs-api-contractor.svg)](https://marketplace.visualstudio.com/items?itemName=deiteris.vs-api-contractor)
 
 ## Overview
 
