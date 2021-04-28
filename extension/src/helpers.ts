@@ -1,8 +1,8 @@
 import * as child_process from "child_process"
-import { window, workspace } from "vscode"
+import { TextDocument, window, workspace } from "vscode"
 import { ApiSearch, ApiFormat } from "./features/api-search"
 
-export async function readApiFileFormat(document = window.activeTextEditor?.document): Promise<ApiFormat | undefined> {
+export async function readApiFileFormat(document: TextDocument | undefined): Promise<ApiFormat | undefined> {
     if (document && document.uri.scheme === 'file') {
         const workspaceRoot = workspace.rootPath
         if (!workspaceRoot) {

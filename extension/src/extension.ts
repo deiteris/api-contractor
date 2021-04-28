@@ -229,7 +229,6 @@ export async function activate(ctx: ExtensionContext) {
     ctx.subscriptions.push(client.start())
 
     fileFormatStatusBar = new FileFormatStatusBar('API format of the current file.')
-    fileFormatStatusBar.changeApiFormat()
     ctx.subscriptions.push(fileFormatStatusBar)
 
     mainFileStatusBar = new MainFileStatusBar(ExtensionCommands.SetMainApiFile, 'Select root API file.', documentSelector)

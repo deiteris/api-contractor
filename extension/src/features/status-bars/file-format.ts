@@ -1,4 +1,4 @@
-import { workspace, commands, window, StatusBarItem, StatusBarAlignment, Disposable } from 'vscode'
+import { workspace, commands, window, StatusBarItem, StatusBarAlignment, Disposable, TextDocument } from 'vscode'
 import { readApiFileFormat } from '../../helpers'
 
 export class FileFormatStatusBar extends Disposable {
@@ -11,6 +11,7 @@ export class FileFormatStatusBar extends Disposable {
         this.statusBarItem.tooltip = tooltip
 
         this.disposables.push(this.statusBarItem)
+        this.changeApiFormat(window.activeTextEditor?.document)
         this.registerEvents()
     }
 
@@ -19,16 +20,16 @@ export class FileFormatStatusBar extends Disposable {
     }
 
     // TODO: FileFormatStatusBar controls the context on which preview buttons depends. This is not what normally should be expected...
-    async changeApiFormat() {
-        const apiFormat = await readApiFileFormat()
+    async changeApiFormat(document: TextDocument | undefined) {
+        const apiFormat = await readApiFileFormat(document)
         if (apiFormat) {
             commands.executeCommand('setContext', 'ac.isApiFile', true)
             this.updateText(`${apiFormat.type}`)
             this.show()
-        } else {
-            commands.executeCommand('setContext', 'ac.isApiFile', false)
-            this.hide()
+            return
         }
+        commands.executeCommand('setContext', 'ac.isApiFile', false)
+        this.hide()
     }
 
     show() {
@@ -40,16 +41,11 @@ export class FileFormatStatusBar extends Disposable {
     }
 
     private registerEvents() {
-        this.disposables.push(workspace.onDidCloseTextDocument(async () => {
-            await this.changeApiFormat()
+        this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
+            await this.changeApiFormat(editor?.document)
         }))
-
-        this.disposables.push(workspace.onDidOpenTextDocument(async () => {
-            await this.changeApiFormat()
-        }))
-
         this.disposables.push(workspace.onDidSaveTextDocument(async () => {
-            await this.changeApiFormat()
+            await this.changeApiFormat(window.activeTextEditor?.document)
         }))
     }
 

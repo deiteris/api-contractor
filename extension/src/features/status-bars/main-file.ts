@@ -1,4 +1,4 @@
-import { workspace, window, StatusBarItem, StatusBarAlignment, Disposable, DocumentFilter } from 'vscode'
+import { window, StatusBarItem, StatusBarAlignment, Disposable, DocumentFilter, TextDocument } from 'vscode'
 
 export class MainFileStatusBar extends Disposable {
     private statusBarItem: StatusBarItem
@@ -13,6 +13,7 @@ export class MainFileStatusBar extends Disposable {
         this.statusBarItem.tooltip = tooltip
 
         this.disposables.push(this.statusBarItem)
+        this.toggle(window.activeTextEditor?.document)
         this.registerEvents()
     }
 
@@ -20,26 +21,17 @@ export class MainFileStatusBar extends Disposable {
         this.statusBarItem.text = text
     }
 
-    show() {
-        this.statusBarItem.show()
-    }
-
-    hide() {
+    toggle(document: TextDocument | undefined) {
+        if (document && this.documentFilter.some(filter => filter.language === document.languageId)) {
+            this.statusBarItem.show()
+            return
+        }
         this.statusBarItem.hide()
     }
 
     private registerEvents() {
-        this.disposables.push(workspace.onDidCloseTextDocument(async () => {
-            const document = window.activeTextEditor?.document
-            if (!document || !this.documentFilter.some(filter => filter.language === document.languageId)) {
-                this.statusBarItem.hide()
-            }
-        }))
-        this.disposables.push(workspace.onDidOpenTextDocument(async () => {
-            const document = window.activeTextEditor?.document
-            if (document && this.documentFilter.some(filter => filter.language === document.languageId)) {
-                this.statusBarItem.show()
-            }
+        this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
+            this.toggle(editor?.document)
         }))
     }
 
