@@ -10,8 +10,6 @@ Based on https://github.com/mulesoft/api-console
 
 ## Embedding the output into extension
 
+1. Remove `sw.js` and `workbox-*.js` files.
+
 1. Rename the javascript file that is formatted like `204c1d73.js` to `apic-build.js` and copy the folder contents (except `index.html`) to `../extension/assets/api-console/`.
-
-1. Remove `link preload` tag.
-
-1. `sw.js` and `workbox-*.js` files can be removed.

@@ -57,6 +57,8 @@ You can configure this behavior by changing the `apiContractor.autoRenameRefs` o
 
 ##### API files preview
 
+Currently opened API file can be previewed with the API Console. A command to invoke API file preview is `ALS: Preview current API file`.
+
 ### UI elements
 
 #### Status bar for the currently selected root API file
