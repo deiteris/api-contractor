@@ -6,7 +6,7 @@ export class MainFileStatusBar extends Disposable {
     private documentFilter: DocumentFilter[]
 
     constructor(command: string, tooltip: string, documentFilter: DocumentFilter[]) {
-        super(() => {this.dispose()})
+        super(() => { this.dispose() })
         this.documentFilter = documentFilter
         this.statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 1)
         this.statusBarItem.command = command

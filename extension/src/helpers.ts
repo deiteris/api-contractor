@@ -1,6 +1,6 @@
 import * as child_process from "child_process"
 import { TextDocument, window, workspace } from "vscode"
-import { ApiSearch, ApiFormat } from "./features/api-search"
+import { readApiType, ApiFormat } from "./features/api-search"
 
 export async function readApiFileFormat(document: TextDocument | undefined): Promise<ApiFormat | undefined> {
     if (document && document.uri.scheme === 'file') {
@@ -8,8 +8,7 @@ export async function readApiFileFormat(document: TextDocument | undefined): Pro
         if (!workspaceRoot) {
             return undefined
         }
-        const apiSearch = new ApiSearch(workspaceRoot)
-        return await apiSearch._readApiType(document.uri.fsPath)
+        return await readApiType(document.uri.fsPath)
     }
     return undefined
 }

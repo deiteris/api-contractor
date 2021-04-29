@@ -6,6 +6,8 @@ An extension for Visual Studio Code that provides intellisense, validation and o
 for the API contracts editing using [AML Language Server (ALS)](https://github.com/aml-org/als#aml-language-server)
 and previewing with [the Mulesoft API Console](https://github.com/mulesoft/api-console).
 
+Note: the extension size is >50mb due to the JVM binary of language server included into the extension.
+
 ## What types of documents are supported?
 
 See supported types of documents: https://github.com/aml-org/als#what-is-als
@@ -59,6 +61,20 @@ You can configure this behavior by changing the `apiContractor.autoRenameRefs` o
 
 Currently opened API file can be previewed with the API Console. A command to invoke API file preview is `ALS: Preview current API file`.
 
+#### API format conversion
+
+The `API Contractor: Convert current API file` command allows converting currently opened API file. When the command
+is invoked, the pick menu will appear with supported conversion formats. After the conversion is done, a new API file
+in selected format will appear.
+
+Note:
+
+* Due to the differences between formats, some format-specific features may be lost or preserved as metadata that needs to be post-processed.
+
+* Unused types will be lost during the conversion.
+
+* If there is a file with the same name as the resulting API file, it will be overwritten.
+
 ### UI elements
 
 #### Status bar for the currently selected root API file
@@ -71,6 +87,8 @@ When the status bar is clicked, the `API Contractor: Set a root API file` comman
 #### Status bar for the format of currently opened API file
 
 When an API file is opened, its format will be shown in the status bar.
+
+When the status bar is clicked, the `API Contractor: Convert current API file` command is invoked.
 
 #### Current API file preview button
 

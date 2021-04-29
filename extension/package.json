@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
@@ -118,6 +118,12 @@
                 "description": "Opens a preview of current API file in the API console.",
                 "icon": "$(preview)",
                 "when": "ac.isApiFile"
+            },
+            {
+                "command": "ac.convert",
+                "title": "Convert current API file",
+                "category": "API Contractor",
+                "description": "Shows the option menus with available conversion formats and syntaxes and converts the current API file according to the selections."
             }
         ],
         "menus": {
@@ -126,6 +132,24 @@
                     "when": "ac.isApiFile && resourceLangId in ac.documentSelector",
                     "command": "ac.management.preview",
                     "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "ac.management.preview",
+                    "when": "ac.isApiFile && resourceLangId in ac.documentSelector"
+                },
+                {
+                    "command": "ac.convert",
+                    "when": "ac.isApiFile && resourceLangId in ac.documentSelector"
+                },
+                {
+                    "command": "ac.set.mainFile",
+                    "when": "workbenchState != empty"
+                },
+                {
+                    "command": "ac.management.restart",
+                    "when": "workbenchState != empty"
                 }
             ]
         }
@@ -150,7 +174,7 @@
         "typescript": "^4.2.4",
         "vsce": "^1.87.1",
         "vscode-test": "^1.5.2",
-        "webpack": "^5.35.1",
+        "webpack": "^5.36.1",
         "webpack-cli": "^4.6.0"
     },
     "scripts": {

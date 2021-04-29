@@ -8,25 +8,28 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range } from 'vscode'
-import { ApiSearch } from './features/api-search'
+import { ApiFormat, findApiFiles } from './features/api-search'
 import { MainFileStatusBar } from './features/status-bars/main-file'
 import { FileFormatStatusBar } from './features/status-bars/file-format'
 import { LanguageClient, StreamInfo, LanguageClientOptions } from 'vscode-languageclient/node'
 import { checkJava, readApiFileFormat } from './helpers'
-import { SerializationPayload, RequestType, RenameFilePayload, SerializationResponse, RenameFileResponse } from './server-types'
+import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes } from './server-types'
+import { Socket } from 'node:net'
 
-const enum ExtensionCommands {
+export const enum ExtensionCommands {
     RestartLanguageServer = 'ac.management.restart',
     PreviewApiFile = 'ac.management.preview',
-    SetMainApiFile = 'ac.set.mainFile'
+    SetMainApiFile = 'ac.set.mainFile',
+    Convert = 'ac.convert'
 }
 const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
 
 let client: LanguageClient
+let socket: Socket
 let fileFormatStatusBar: FileFormatStatusBar
 let mainFileStatusBar: MainFileStatusBar
 
-function openMainApiSelection(workspaceRoot: string) {
+async function openMainApiSelection(workspaceRoot: string) {
     const options: OpenDialogOptions = {
         canSelectMany: false,
         openLabel: 'Select',
@@ -36,14 +39,13 @@ function openMainApiSelection(workspaceRoot: string) {
         }
     }
 
-    window.showOpenDialog(options).then(fileUri => {
-        if (fileUri && fileUri[0]) {
-            writeMainApiFile(workspaceRoot, fileUri[0].fsPath)
-        }
-    })
+    const fileUri = await window.showOpenDialog(options)
+    if (fileUri && fileUri[0]) {
+        await writeMainApiFile(workspaceRoot, fileUri[0].fsPath)
+    }
 }
 
-function writeMainApiFile(workspaceRoot: string, filePath: string) {
+async function writeMainApiFile(workspaceRoot: string, filePath: string) {
     let main = filePath
     if (path.isAbsolute(filePath)) {
         main = path.relative(workspaceRoot, filePath).replace(/\\/g, '/')
@@ -53,9 +55,8 @@ function writeMainApiFile(workspaceRoot: string, filePath: string) {
         }
     }
     const configPath = path.join(workspaceRoot, configFile)
-    fs.writeJSON(configPath, { main }).then(() => {
-        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
-    })
+    await fs.writeJSON(configPath, { main })
+    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
     mainFileStatusBar.updateText(`$(file-code) ${main}`)
 }
 
@@ -65,7 +66,7 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
             oldDocument: { uri: client.code2ProtocolConverter.asUri(file.oldUri) },
             newDocument: { uri: client.code2ProtocolConverter.asUri(file.newUri) }
         }
-        const data: RenameFileResponse = await client.sendRequest(RequestType.RenameFile, payload)
+        const data: RenameFileResponse = await client.sendRequest(RequestMethod.RenameFile, payload)
         if (!data.edits.documentChanges) {
             return
         }
@@ -81,40 +82,36 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
                 we.replace(uri, new Range(startPos, endPos), edit.newText)
             }
         }
-        workspace.applyEdit(we).then(res => {
-            if (res) {
-                workspace.saveAll(false)
-            }
-        })
+        const res = workspace.applyEdit(we)
+        if (res) {
+            workspace.saveAll(false)
+        }
     }
 }
 
 async function checkMainApiFile(workspaceRoot: string) {
     const autoDetectRootApi = workspace.getConfiguration('apiContractor').get('autoDetectRootApi')
     if (autoDetectRootApi) {
-        const apiSearch = new ApiSearch(workspaceRoot)
-        const candidates = await apiSearch.findApiFile()
+        const candidates = await findApiFiles(workspaceRoot)
         if (!candidates) {
             return
         }
         if (candidates.length > 1) {
-            window.showInformationMessage('There are multiple root API files in the workspace root. Please select a root API file manually.', 'Select file').then((selection) => {
-                if (selection) {
-                    openMainApiSelection(workspaceRoot)
-                }
-            })
+            const selection = await window.showInformationMessage('There are multiple root API files in the workspace root. Please select a root API file manually.', 'Select file')
+            if (selection) {
+                await openMainApiSelection(workspaceRoot)
+            }
             return
         }
         const rootFile = candidates[0]
-        writeMainApiFile(workspaceRoot, rootFile)
+        await writeMainApiFile(workspaceRoot, rootFile)
         window.showInformationMessage(`The "${rootFile}" has been automatically selected as a root API file.`)
         return
     }
-    window.showInformationMessage('Main API file is not set for this workspace. Would you like to set the root API file?', 'Select file').then((selection) => {
-        if (selection) {
-            openMainApiSelection(workspaceRoot)
-        }
-    })
+    const selection = await window.showInformationMessage('The root API file is not set for this workspace. Would you like to set the root API file?', 'Select file')
+    if (selection) {
+        await openMainApiSelection(workspaceRoot)
+    }
 }
 
 async function readMainApiFile(workspaceRoot: string | undefined) {
@@ -128,6 +125,43 @@ async function readMainApiFile(workspaceRoot: string | undefined) {
         mainFileStatusBar.updateText(`$(file-code) No root API file`)
         await checkMainApiFile(workspaceRoot)
     }
+}
+
+async function showTargetFormatPick(apiFormat: ApiFormat): Promise<ConversionFormats | undefined> {
+    if (apiFormat.type === ConversionFormats.RAML08) {
+        window.showErrorMessage('Conversion from RAML 0.8 is not supported.')
+        return
+    }
+    let formats
+    if (apiFormat.type === ConversionFormats.RAML10) {
+        formats = [
+            ConversionFormats.OAS20,
+            ConversionFormats.OAS30
+        ]
+    } else {
+        formats = [
+            ConversionFormats.OAS20,
+            ConversionFormats.OAS30,
+            ConversionFormats.RAML10
+        ]
+    }
+    return <ConversionFormats>await window.showQuickPick(formats, { placeHolder: 'Select conversion format' })
+}
+
+async function showTargetSyntaxPick(fromFormat: ConversionFormats, fromSyntax: ConversionSyntaxes, toFormat: ConversionFormats): Promise<ConversionSyntaxes | undefined> {
+    if (toFormat === ConversionFormats.RAML10) {
+        return ConversionSyntaxes.RAML
+    }
+    const syntaxes = [
+        ConversionSyntaxes.JSON,
+        ConversionSyntaxes.YAML
+    ].filter(toSyntax => {
+        if (fromFormat === toFormat && toSyntax === fromSyntax) {
+            return false
+        }
+        return true
+    })
+    return <ConversionSyntaxes>await window.showQuickPick(syntaxes, { placeHolder: 'Select conversion syntax' })
 }
 
 export async function activate(ctx: ExtensionContext) {
@@ -159,40 +193,48 @@ export async function activate(ctx: ExtensionContext) {
         }
     }
 
-    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, () => {
+    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, async () => {
         const workspaceRoot = workspace.rootPath
         if (!workspaceRoot) {
-            window.showErrorMessage('Failed to set main API file: no workspace currently opened.')
+            window.showErrorMessage('Failed to set the root API file: no workspace currently opened.')
             return
         }
-        openMainApiSelection(workspaceRoot)
+        await openMainApiSelection(workspaceRoot)
     }))
 
-    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, () => {
-        client.stop().then(() => {
-            client.start()
-        })
-    }))
-
-    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.PreviewApiFile, async () => {
-        const textEditor = window.activeTextEditor
-        if (!textEditor) {
-            window.showErrorMessage('Failed to open the preview: no active text editor window.')
-            return
-        }
+    ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.Convert, async (textEditor) => {
         const document = textEditor.document
-        if (document.uri.scheme !== 'file') {
-            window.showErrorMessage('Failed to open the preview: make sure that you focused a window with the file and the file is saved to a disk.')
-            return
-        }
         const apiFormat = await readApiFileFormat(document)
         if (!apiFormat) {
-            window.showErrorMessage('Failed to open the preview: the file is not an API file or has invalid format.')
+            return
+        }
+        const target = await showTargetFormatPick(apiFormat)
+        if (!target) {
+            return
+        }
+        const syntax = await showTargetSyntaxPick(<ConversionFormats>apiFormat.type, <ConversionSyntaxes>apiFormat.syntax, target)
+        if (!syntax) {
             return
         }
         const uri = client.code2ProtocolConverter.asUri(document.uri)
+        const payload: ConversionPayload = { uri, target, syntax }
+        const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
+        const filename = path.basename(document.uri.fsPath, path.extname(document.uri.fsPath))
+        const filePath = path.join(path.dirname(document.uri.fsPath), `${filename}.${syntax}`)
+        await fs.writeFile(filePath, data.content)
+        commands.executeCommand('vscode.open', Uri.file(filePath))
+    }))
+
+    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, () => {
+        client.diagnostics?.clear()
+        socket.emit('close')
+    }))
+
+    ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.PreviewApiFile, async (textEditor) => {
+        const document = textEditor.document
+        const uri = client.code2ProtocolConverter.asUri(document.uri)
         const payload: SerializationPayload = { documentIdentifier: { uri } }
-        const data: SerializationResponse = await client.sendRequest(RequestType.Serialization, payload)
+        const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
         const panel = window.createWebviewPanel(
             'apiFilePreview',
             `API Console: ${path.basename(uri)}`,
@@ -204,17 +246,16 @@ export async function activate(ctx: ExtensionContext) {
             }
         )
 
-        fs.readFile(ctx.asAbsolutePath(path.join('assets', 'api-console', 'index.html')), 'utf8').then(contents => {
-            const vendorJsUri = Uri.file(
-                path.join(ctx.extensionPath, 'assets', 'api-console', 'vendor.js')
-            )
-            const apicBuildJsUri = Uri.file(
-                path.join(ctx.extensionPath, 'assets', 'api-console', 'apic-build.js')
-            )
-            contents = contents.replace('./vendor.js', panel.webview.asWebviewUri(vendorJsUri).toString()).replace('./apic-build.js', panel.webview.asWebviewUri(apicBuildJsUri).toString())
-            panel.webview.html = contents
-            setTimeout(() => panel.webview.postMessage(data.content), 1000) // TODO: Hacky way to wait until the webview actually loads to post message
-        })
+        let contents = await fs.readFile(ctx.asAbsolutePath(path.join('assets', 'api-console', 'index.html')), 'utf8')
+        const vendorJsUri = Uri.file(
+            path.join(ctx.extensionPath, 'assets', 'api-console', 'vendor.js')
+        )
+        const apicBuildJsUri = Uri.file(
+            path.join(ctx.extensionPath, 'assets', 'api-console', 'apic-build.js')
+        )
+        contents = contents.replace('./vendor.js', panel.webview.asWebviewUri(vendorJsUri).toString()).replace('./apic-build.js', panel.webview.asWebviewUri(apicBuildJsUri).toString())
+        panel.webview.html = contents
+        setTimeout(() => panel.webview.postMessage(data.content), 1000) // TODO: Hacky way to wait until the page in the webview is actually loaded to post message
     }))
 
     // Create the language client and start the client.
@@ -228,10 +269,10 @@ export async function activate(ctx: ExtensionContext) {
     // Start the client. This will also launch the server
     ctx.subscriptions.push(client.start())
 
-    fileFormatStatusBar = new FileFormatStatusBar('API format of the current file.')
+    fileFormatStatusBar = new FileFormatStatusBar(ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
     ctx.subscriptions.push(fileFormatStatusBar)
 
-    mainFileStatusBar = new MainFileStatusBar(ExtensionCommands.SetMainApiFile, 'Select root API file.', documentSelector)
+    mainFileStatusBar = new MainFileStatusBar(ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.', documentSelector)
     ctx.subscriptions.push(mainFileStatusBar)
 
     client.onReady().then(async () => {
@@ -258,6 +299,7 @@ export async function activate(ctx: ExtensionContext) {
         ctx.subscriptions.push(workspace.onDidDeleteFiles(async (e) => {
             for (const file of e.files) {
                 if (path.basename(file.fsPath) === configFile) {
+                    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
                     // If API file auto detection is enabled, the file may appear before file watcher notices the deletion
                     // Debounce config file creation to prevent this race condition
                     setTimeout(async () => await readMainApiFile(workspace.rootPath), 500)
@@ -297,9 +339,10 @@ export async function activate(ctx: ExtensionContext) {
     function createServer(): Promise<StreamInfo> {
 
         return new Promise((resolve) => {
-            const server = net.createServer(socket => {
+            const server = net.createServer(s => {
                 console.log("[ALS] Socket created")
 
+                socket = s
                 resolve({
                     reader: socket,
                     writer: socket,
