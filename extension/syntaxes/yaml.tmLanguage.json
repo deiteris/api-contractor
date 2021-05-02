@@ -1,0 +1,9 @@
+{
+    "name": "YAML OAS",
+    "patterns": [
+      {
+        "include": "source.yaml"
+      }
+    ],
+    "scopeName": "source.yaml.oas"
+  }

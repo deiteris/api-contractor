@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
@@ -35,8 +35,6 @@
         "onLanguage:yaml",
         "onLanguage:json",
         "onCommand:ac.management.restart",
-        "onCommand:ac.management.preview",
-        "onCommand:ac.set.mainFile",
         "onWebviewPanel:apiFilePreview"
     ],
     "contributes": {
@@ -47,10 +45,23 @@
                     "RAML",
                     "raml"
                 ],
-                "extensions": [
-                    ".raml"
+                "configuration": "./language-configs/yaml.json"
+            },
+            {
+                "id": "yaml-api",
+                "aliases": [
+                    "YAML",
+                    "yaml"
                 ],
-                "configuration": "./language-configs/raml.json"
+                "configuration": "./language-configs/yaml.json"
+            },
+            {
+                "id": "json-api",
+                "aliases": [
+                    "JSON",
+                    "json"
+                ],
+                "configuration": "./language-configs/json.json"
             },
             {
                 "id": "jsonc",
@@ -64,6 +75,16 @@
                 "language": "raml",
                 "scopeName": "source.raml",
                 "path": "./syntaxes/raml.tmLanguage.json"
+            },
+            {
+                "language": "json-api",
+                "scopeName": "source.json.oas",
+                "path": "./syntaxes/json.tmLanguage.json"
+            },
+            {
+                "language": "yaml-api",
+                "scopeName": "source.yaml.oas",
+                "path": "./syntaxes/yaml.tmLanguage.json"
             }
         ],
         "configuration": {
@@ -83,7 +104,7 @@
                 "apiContractor.autoDetectRootApi": {
                     "scope": "window",
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "Enables the root API file auto detection."
                 },
                 "apiContractor.autoRenameRefs": {
@@ -95,15 +116,21 @@
                     ],
                     "default": "always",
                     "description": "Configures automatic rename of the referenced files. Works only when the workspace has the root API file set."
+                },
+                "apiContractor.notification.noMainApiFileSet": {
+                    "scope": "window",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables notification when no main API file is set."
                 }
             }
         },
         "commands": [
             {
-                "command": "ac.set.mainFile",
-                "title": "Set a root API file",
+                "command": "ac.set.currentAsMainFile",
+                "title": "Set current API file as root file",
                 "category": "API Contractor",
-                "description": "Writes the \"exchange.json\" file to workspace root with the path to the root API file."
+                "description": "Writes the \"exchange.json\" file to workspace root with the relative path to current API file."
             },
             {
                 "command": "ac.management.restart",
@@ -129,7 +156,7 @@
         "menus": {
             "editor/title": [
                 {
-                    "when": "ac.isApiFile && resourceLangId in ac.documentSelector",
+                    "when": "editorLangId in ac.documentSelector",
                     "command": "ac.management.preview",
                     "group": "navigation"
                 }
@@ -137,15 +164,15 @@
             "commandPalette": [
                 {
                     "command": "ac.management.preview",
-                    "when": "ac.isApiFile && resourceLangId in ac.documentSelector"
+                    "when": "editorLangId in ac.documentSelector"
                 },
                 {
                     "command": "ac.convert",
-                    "when": "ac.isApiFile && resourceLangId in ac.documentSelector"
+                    "when": "editorLangId in ac.documentSelector"
                 },
                 {
-                    "command": "ac.set.mainFile",
-                    "when": "workbenchState != empty"
+                    "command": "ac.set.currentAsMainFile",
+                    "when": "editorLangId in ac.documentSelector"
                 },
                 {
                     "command": "ac.management.restart",
@@ -172,9 +199,9 @@
         "rimraf": "^3.0.2",
         "ts-loader": "^9.1.1",
         "typescript": "^4.2.4",
-        "vsce": "^1.87.1",
+        "vsce": "^1.88.0",
         "vscode-test": "^1.5.2",
-        "webpack": "^5.36.1",
+        "webpack": "^5.36.2",
         "webpack-cli": "^4.6.0"
     },
     "scripts": {

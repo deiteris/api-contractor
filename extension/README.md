@@ -6,7 +6,7 @@ An extension for Visual Studio Code that provides intellisense, validation and o
 for the API contracts editing using [AML Language Server (ALS)](https://github.com/aml-org/als#aml-language-server)
 and previewing with [the Mulesoft API Console](https://github.com/mulesoft/api-console).
 
-Note: the extension size is >50mb due to the JVM binary of language server included into the extension.
+Note: the extension size is 50-60mb due to the JVM binary of language server included into the extension.
 
 ## What types of documents are supported?
 
@@ -69,7 +69,7 @@ in selected format will appear.
 
 Note:
 
-* Due to the differences between formats, some format-specific features may be lost or preserved as metadata that needs to be post-processed.
+* Due to the differences between formats, some format-specific features may be lost or preserved as metadata in `x-amf` tags that need to be post-processed.
 
 * Unused types will be lost during the conversion.
 

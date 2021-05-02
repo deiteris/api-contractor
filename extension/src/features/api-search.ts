@@ -1,26 +1,27 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-
-interface FileInfo {
-    absolute: string,
-    relative: string
-}
+import { SUPPORTED_EXTENSIONS } from '../extension'
 
 export interface ApiFormat {
     type: string,
-    syntax: string
+    syntax: string,
+    languageId: string
 }
 
 /**
  * Finds API files and returns the list of file paths relative to given location.
  */
-export async function findApiFiles(workdir: string): Promise<Array<string> | undefined> {
+export async function findApiFiles(workdir: string): Promise<Array<string>> {
     const items = await fs.readdir(workdir)
-    const exts = ['.raml', '.yaml', '.json']
+    const exts = SUPPORTED_EXTENSIONS
+    const popularNames = ['api.raml', 'api.json', 'api.yaml', 'api.yml']
     const ignore = ['exchange.json', 'art_config.yaml', 'art.yaml']
     const files: string[] = []
     for (let i = 0; i < items.length; i++) {
         const item = items[i]
+        if (popularNames.includes(item)) {
+            return [item]
+        }
         const lower = item.toLowerCase()
         if (ignore.indexOf(lower) !== -1) {
             continue
@@ -30,38 +31,19 @@ export async function findApiFiles(workdir: string): Promise<Array<string> | und
             files.push(item)
         }
     }
-    if (files.length) {
-        return _decideMainFile(files, workdir)
-    }
-    return undefined
-}
-
-/**
- * Decides which file to use as main API file.
- */
-async function _decideMainFile(files: string[], workdir: string): Promise<string[] | undefined> {
-    const fullPathFiles = files.map((item) => {
-        return {
-            absolute: path.join(workdir, item),
-            relative: item
-        }
-    })
-    const list = await _findWebApiFiles(fullPathFiles)
-    if (!list) {
-        return undefined
-    }
-    return list
+    return _findWebApiFiles(files, workdir)
 }
 
 /**
  * Reads all files and looks for RAML and OpenAPI (Swagger) API headers
  */
-async function _findWebApiFiles(files: FileInfo[]): Promise<string[]> {
+async function _findWebApiFiles(files: string[], workdir: string): Promise<string[]> {
     const results: string[] = []
     for (const file of files) {
-        const type = await readApiType(file.absolute)
+        const absolutePath = path.join(workdir, file)
+        const type = await readApiType(absolutePath)
         if (type) {
-            results.push(file.relative)
+            results.push(file)
         }
     }
     return results
@@ -91,7 +73,8 @@ export async function readApiType(file: string): Promise<ApiFormat | undefined> 
         const v = match[1].trim()
         return {
             type: `OAS ${v}`,
-            syntax: 'json'
+            syntax: 'json',
+            languageId: 'json-api'
         }
     }
     const oasMatch = data.match(/(?:openapi|swagger)[^\s*]?:(?:\s*)("|')?(\d\.\d)("|')?/im)
@@ -99,7 +82,8 @@ export async function readApiType(file: string): Promise<ApiFormat | undefined> 
         const v = oasMatch[2].trim()
         return {
             type: `OAS ${v}`,
-            syntax: 'yaml'
+            syntax: 'yaml',
+            languageId: 'yaml-api'
         }
     }
     const header = data.split('\n')[0].substr(2).trim()
@@ -109,13 +93,15 @@ export async function readApiType(file: string): Promise<ApiFormat | undefined> 
     if (header === 'RAML 0.8') {
         return {
             type: header,
-            syntax: 'raml'
+            syntax: 'raml',
+            languageId: 'raml'
         }
     }
     if (header.indexOf('RAML 1.0') === 0) {
         return {
             type: 'RAML 1.0',
-            syntax: 'raml'
+            syntax: 'raml',
+            languageId: 'raml'
         }
     }
     return undefined

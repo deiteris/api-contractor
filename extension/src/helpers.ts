@@ -1,17 +1,5 @@
 import * as child_process from "child_process"
-import { TextDocument, window, workspace } from "vscode"
-import { readApiType, ApiFormat } from "./features/api-search"
-
-export async function readApiFileFormat(document: TextDocument | undefined): Promise<ApiFormat | undefined> {
-    if (document && document.uri.scheme === 'file') {
-        const workspaceRoot = workspace.rootPath
-        if (!workspaceRoot) {
-            return undefined
-        }
-        return await readApiType(document.uri.fsPath)
-    }
-    return undefined
-}
+import { window } from "vscode"
 
 export function checkJava(): Promise<boolean> {
     return new Promise((resolve) => {

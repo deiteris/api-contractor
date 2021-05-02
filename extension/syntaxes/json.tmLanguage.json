@@ -1,0 +1,9 @@
+{
+    "name": "JSON OAS",
+    "patterns": [
+      {
+        "include": "source.json"
+      }
+    ],
+    "scopeName": "source.json.oas"
+  }

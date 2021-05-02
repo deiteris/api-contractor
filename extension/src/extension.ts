@@ -1,5 +1,4 @@
 // TODO: https://docs.42crunch.com/latest/content/concepts/api_contract_security_audit.htm
-// TODO: Investigate conversion feature
 // TODO: Show if the opened file is linked if main API file is set
 
 import * as net from 'net'
@@ -9,40 +8,45 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
-import { MainFileStatusBar } from './features/status-bars/main-file'
-import { FileFormatStatusBar } from './features/status-bars/file-format'
-import { LanguageClient, StreamInfo, LanguageClientOptions } from 'vscode-languageclient/node'
-import { checkJava, readApiFileFormat } from './helpers'
+import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction } from 'vscode-languageclient/node'
+import { checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes } from './server-types'
 import { Socket } from 'node:net'
+import { ChildProcessWithoutNullStreams } from 'node:child_process'
+import { ApiDocumentController } from './features/api-document-controller'
 
 export const enum ExtensionCommands {
     RestartLanguageServer = 'ac.management.restart',
     PreviewApiFile = 'ac.management.preview',
     SetMainApiFile = 'ac.set.mainFile',
+    SetCurrentAsMainApiFile = 'ac.set.currentAsMainFile',
     Convert = 'ac.convert'
 }
+export const SUPPORTED_EXTENSIONS = ['.raml', '.yaml', '.yml', '.json']
 const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
 
 let client: LanguageClient
 let socket: Socket
-let fileFormatStatusBar: FileFormatStatusBar
-let mainFileStatusBar: MainFileStatusBar
+let process: ChildProcessWithoutNullStreams
+let apiDocumentController: ApiDocumentController
 
-async function openMainApiSelection(workspaceRoot: string) {
+async function openMainApiSelection(workspaceRoot: string): Promise<boolean> {
     const options: OpenDialogOptions = {
         canSelectMany: false,
         openLabel: 'Select',
         filters: {
-            'API files': ['raml', 'yaml', 'yml', 'json'],
+            'API files': SUPPORTED_EXTENSIONS.map(ext => {return ext.slice(1)}),
             'All files': ['*']
-        }
+        },
+        defaultUri: Uri.file(workspaceRoot)
     }
 
     const fileUri = await window.showOpenDialog(options)
     if (fileUri && fileUri[0]) {
         await writeMainApiFile(workspaceRoot, fileUri[0].fsPath)
+        return true
     }
+    return false
 }
 
 async function writeMainApiFile(workspaceRoot: string, filePath: string) {
@@ -56,8 +60,7 @@ async function writeMainApiFile(workspaceRoot: string, filePath: string) {
     }
     const configPath = path.join(workspaceRoot, configFile)
     await fs.writeJSON(configPath, { main })
-    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
-    mainFileStatusBar.updateText(`$(file-code) ${main}`)
+    apiDocumentController.updateFilename(main)
 }
 
 async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
@@ -90,12 +93,12 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
 }
 
 async function checkMainApiFile(workspaceRoot: string) {
+    const candidates = await findApiFiles(workspaceRoot)
+    if (!candidates.length) {
+        return
+    }
     const autoDetectRootApi = workspace.getConfiguration('apiContractor').get('autoDetectRootApi')
     if (autoDetectRootApi) {
-        const candidates = await findApiFiles(workspaceRoot)
-        if (!candidates) {
-            return
-        }
         if (candidates.length > 1) {
             const selection = await window.showInformationMessage('There are multiple root API files in the workspace root. Please select a root API file manually.', 'Select file')
             if (selection) {
@@ -108,9 +111,12 @@ async function checkMainApiFile(workspaceRoot: string) {
         window.showInformationMessage(`The "${rootFile}" has been automatically selected as a root API file.`)
         return
     }
-    const selection = await window.showInformationMessage('The root API file is not set for this workspace. Would you like to set the root API file?', 'Select file')
-    if (selection) {
-        await openMainApiSelection(workspaceRoot)
+    const notifyNoMainApiFile = workspace.getConfiguration('apiContractor').get('notification.noMainApiFileSet')
+    if (notifyNoMainApiFile) {
+        const selection = await window.showInformationMessage('The root API file is not set for this workspace. Would you like to set the root API file?', 'Select file')
+        if (selection) {
+            await openMainApiSelection(workspaceRoot)
+        }
     }
 }
 
@@ -119,21 +125,28 @@ async function readMainApiFile(workspaceRoot: string | undefined) {
         return
     }
     try {
-        const data = await fs.readJSON(path.join(workspaceRoot, configFile))
-        mainFileStatusBar.updateText(`$(file-code) ${data.main}`)
+        const configPath = path.join(workspaceRoot, configFile)
+        const data = await fs.readJSON(configPath)
+        try {
+            await fs.access(path.join(workspaceRoot, data.main))
+        } catch {
+            await fs.remove(configPath)
+            throw Error
+        }
+        apiDocumentController.updateFilename(data.main)
     } catch {
-        mainFileStatusBar.updateText(`$(file-code) No root API file`)
+        apiDocumentController.updateFilename(undefined)
         await checkMainApiFile(workspaceRoot)
     }
 }
 
-async function showTargetFormatPick(apiFormat: ApiFormat): Promise<ConversionFormats | undefined> {
-    if (apiFormat.type === ConversionFormats.RAML08) {
+async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFormats | undefined> {
+    if (fromFormat.type === ConversionFormats.RAML08) {
         window.showErrorMessage('Conversion from RAML 0.8 is not supported.')
         return
     }
     let formats
-    if (apiFormat.type === ConversionFormats.RAML10) {
+    if (fromFormat.type === ConversionFormats.RAML10) {
         formats = [
             ConversionFormats.OAS20,
             ConversionFormats.OAS30
@@ -173,8 +186,8 @@ export async function activate(ctx: ExtensionContext) {
 
     const documentSelector = [
         { scheme: 'file', language: 'raml' },
-        { scheme: 'file', language: 'yaml' },
-        { scheme: 'file', language: 'json' }
+        { scheme: 'file', language: 'yaml-api' },
+        { scheme: 'file', language: 'json-api' }
     ]
     commands.executeCommand('setContext', 'ac.documentSelector', documentSelector.map((item) => { return item.language }))
 
@@ -190,21 +203,42 @@ export async function activate(ctx: ExtensionContext) {
         uriConverters: {
             code2Protocol: uri => new url.URL(uri.toString(true)).href,
             protocol2Code: str => Uri.parse(str)
+        },
+        // TODO: Maybe improve error handling
+        errorHandler: {
+            error: () => {
+                return ErrorAction.Continue
+            },
+            closed: () => {
+                return CloseAction.Restart
+            }
         }
     }
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, async () => {
         const workspaceRoot = workspace.rootPath
         if (!workspaceRoot) {
-            window.showErrorMessage('Failed to set the root API file: no workspace currently opened.')
             return
         }
-        await openMainApiSelection(workspaceRoot)
+        const res = await openMainApiSelection(workspaceRoot)
+        if (res) {
+            commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+        }
+    }))
+
+    ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.SetCurrentAsMainApiFile, async (textEditor) => {
+        const workspaceRoot = workspace.rootPath
+        if (!workspaceRoot) {
+            return
+        }
+        const document = textEditor.document
+        await writeMainApiFile(workspaceRoot, document.fileName)
+        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.Convert, async (textEditor) => {
         const document = textEditor.document
-        const apiFormat = await readApiFileFormat(document)
+        const apiFormat = await apiDocumentController.readApiFileFormat(document)
         if (!apiFormat) {
             return
         }
@@ -219,8 +253,8 @@ export async function activate(ctx: ExtensionContext) {
         const uri = client.code2ProtocolConverter.asUri(document.uri)
         const payload: ConversionPayload = { uri, target, syntax }
         const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
-        const filename = path.basename(document.uri.fsPath, path.extname(document.uri.fsPath))
-        const filePath = path.join(path.dirname(document.uri.fsPath), `${filename}.${syntax}`)
+        const filename = path.basename(document.fileName, path.extname(document.fileName))
+        const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
         await fs.writeFile(filePath, data.content)
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
@@ -228,6 +262,7 @@ export async function activate(ctx: ExtensionContext) {
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, () => {
         client.diagnostics?.clear()
         socket.emit('close')
+        process.kill()
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.PreviewApiFile, async (textEditor) => {
@@ -269,11 +304,8 @@ export async function activate(ctx: ExtensionContext) {
     // Start the client. This will also launch the server
     ctx.subscriptions.push(client.start())
 
-    fileFormatStatusBar = new FileFormatStatusBar(ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
-    ctx.subscriptions.push(fileFormatStatusBar)
-
-    mainFileStatusBar = new MainFileStatusBar(ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.', documentSelector)
-    ctx.subscriptions.push(mainFileStatusBar)
+    apiDocumentController = new ApiDocumentController(documentSelector)
+    ctx.subscriptions.push(apiDocumentController)
 
     client.onReady().then(async () => {
 
@@ -298,11 +330,13 @@ export async function activate(ctx: ExtensionContext) {
 
         ctx.subscriptions.push(workspace.onDidDeleteFiles(async (e) => {
             for (const file of e.files) {
-                if (path.basename(file.fsPath) === configFile) {
-                    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
-                    // If API file auto detection is enabled, the file may appear before file watcher notices the deletion
+                if (path.basename(file.fsPath) === configFile || path.basename(file.fsPath) === apiDocumentController.filename) {
+                    // If API file auto detection is enabled, the file may appear before the file watcher notices the deletion
                     // Debounce config file creation to prevent this race condition
-                    setTimeout(async () => await readMainApiFile(workspace.rootPath), 500)
+                    setTimeout(async () => {
+                        await readMainApiFile(workspace.rootPath)
+                        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+                    }, 500)
                 }
             }
 
@@ -320,7 +354,7 @@ export async function activate(ctx: ExtensionContext) {
             if (client.diagnostics) {
                 client.diagnostics.set(file.uri, [])
             }
-            const contents = await fs.readFile(file.uri.fsPath, 'utf8')
+            const contents = await fs.readFile(file.fileName, 'utf8')
             const data = {
                 textDocument: {
                     uri: `${file.uri.scheme}://${file.uri.path}`,
@@ -371,7 +405,7 @@ export async function activate(ctx: ExtensionContext) {
                     port.toString()
                 ]
                 console.log(`[ALS] Spawning at port: ${port}`)
-                const process = child_process.spawn("java", args, options)
+                process = child_process.spawn("java", args, options)
 
                 // See https://github.com/aml-org/als/issues/504
                 // eslint-disable-next-line @typescript-eslint/no-empty-function

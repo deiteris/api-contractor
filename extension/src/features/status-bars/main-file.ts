@@ -1,38 +1,28 @@
-import { window, StatusBarItem, StatusBarAlignment, Disposable, DocumentFilter, TextDocument } from 'vscode'
+import { window, StatusBarItem, StatusBarAlignment, Disposable } from 'vscode'
 
 export class MainFileStatusBar extends Disposable {
     private statusBarItem: StatusBarItem
     private disposables: Disposable[] = []
-    private documentFilter: DocumentFilter[]
 
-    constructor(command: string, tooltip: string, documentFilter: DocumentFilter[]) {
+    constructor(command: string, tooltip: string) {
         super(() => { this.dispose() })
-        this.documentFilter = documentFilter
         this.statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 1)
-        this.statusBarItem.command = command
         this.statusBarItem.tooltip = tooltip
+        this.statusBarItem.command = command
 
         this.disposables.push(this.statusBarItem)
-        this.toggle(window.activeTextEditor?.document)
-        this.registerEvents()
     }
 
-    updateText(text: string) {
-        this.statusBarItem.text = text
+    updateText(filename: string | undefined) {
+        this.statusBarItem.text = `$(file-code) ${filename ? filename : 'No root API file'}`
     }
 
-    toggle(document: TextDocument | undefined) {
-        if (document && this.documentFilter.some(filter => filter.language === document.languageId)) {
-            this.statusBarItem.show()
-            return
-        }
+    show() {
+        this.statusBarItem.show()
+    }
+
+    hide() {
         this.statusBarItem.hide()
-    }
-
-    private registerEvents() {
-        this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
-            this.toggle(editor?.document)
-        }))
     }
 
     dispose() {

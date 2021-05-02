@@ -1,5 +1,4 @@
-import { workspace, commands, window, StatusBarItem, StatusBarAlignment, Disposable, TextDocument } from 'vscode'
-import { readApiFileFormat } from '../../helpers'
+import { window, StatusBarItem, StatusBarAlignment, Disposable } from 'vscode'
 
 export class FileFormatStatusBar extends Disposable {
     private statusBarItem: StatusBarItem
@@ -12,25 +11,10 @@ export class FileFormatStatusBar extends Disposable {
         this.statusBarItem.command = command
 
         this.disposables.push(this.statusBarItem)
-        this.changeApiFormat(window.activeTextEditor?.document)
-        this.registerEvents()
     }
 
     updateText(text: string) {
         this.statusBarItem.text = text
-    }
-
-    // TODO: FileFormatStatusBar controls the context on which preview buttons depends. This is not what normally should be expected...
-    async changeApiFormat(document: TextDocument | undefined) {
-        const apiFormat = await readApiFileFormat(document)
-        if (apiFormat) {
-            commands.executeCommand('setContext', 'ac.isApiFile', true)
-            this.updateText(`${apiFormat.type}`)
-            this.show()
-            return
-        }
-        commands.executeCommand('setContext', 'ac.isApiFile', false)
-        this.hide()
     }
 
     show() {
@@ -39,15 +23,6 @@ export class FileFormatStatusBar extends Disposable {
 
     hide() {
         this.statusBarItem.hide()
-    }
-
-    private registerEvents() {
-        this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
-            await this.changeApiFormat(editor?.document)
-        }))
-        this.disposables.push(workspace.onDidSaveTextDocument(async () => {
-            await this.changeApiFormat(window.activeTextEditor?.document)
-        }))
     }
 
     dispose() {
