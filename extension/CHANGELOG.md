@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.2.0
+
+### Features
+
+#### The API Console "Try It" functionality
+
+Now it is possible to use the Try It functionality in the opened API preview.
+
+Note: the OAuth 2.0 `Authorization code (server flow)` response type will not work due to the VS Code webview API limitations.
+
+### Changes
+
+* An error message is shown in cases when a language server is not ready to execute commands that depend on it.
+
+  This prevents issues in the following cases:
+
+  * When `exchange.json` is deleted, the language server may be not ready to restart.
+
+  * When a command is executed and language server is not ready, erroneous or confusing behavior may occur.
+    For example, opening an API file preview when language server is restarting would result in empty API console without any notifications.
+
+* Enhanced security of the preview tab by enforcing the [`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy) rules.
+
+### Fixes
+
+* Eliminated a lag when opening an API file preview.
+
+* Updated commands in README.
+
+* When `exchange.json` is deleted, the extension will no longer wait for input to restart the language server.
+
 ## 1.1.0
 
 ### Features

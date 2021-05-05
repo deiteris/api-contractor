@@ -1,9 +1,8 @@
 import * as path from 'path'
-import { Disposable, DocumentFilter, languages, TextDocument, window, workspace } from "vscode"
+import { Disposable, DocumentFilter, languages, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
 import { ExtensionCommands, SUPPORTED_EXTENSIONS } from "../extension"
 import { ApiFormat, readApiType } from "./api-search"
-import { FileFormatStatusBar } from "./status-bars/file-format"
-import { MainFileStatusBar } from "./status-bars/main-file"
+import { FileFormatStatusBar, MainFileStatusBar } from './status-bar'
 
 export class ApiDocumentController extends Disposable {
     private fileFormatStatusBar: FileFormatStatusBar
@@ -16,9 +15,9 @@ export class ApiDocumentController extends Disposable {
     constructor(documentFilter: DocumentFilter[]) {
         super(() => { this.dispose() })
         this.documentFilter = documentFilter
-        this.fileFormatStatusBar = new FileFormatStatusBar(ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
+        this.fileFormatStatusBar = new FileFormatStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 2), ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
         this.disposables.push(this.fileFormatStatusBar)
-        this.mainFileStatusBar = new MainFileStatusBar(ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.')
+        this.mainFileStatusBar = new MainFileStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 1), ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.')
         this.disposables.push(this.mainFileStatusBar)
         this.extensions = SUPPORTED_EXTENSIONS
 

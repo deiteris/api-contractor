@@ -21,7 +21,8 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 
 * `API Contractor: Restart language server` - Restarts the client and language server.
 * `API Contractor: Preview current API file` - Opens current API file in the API console.
-* `API Contractor: Set a root API file` - Writes the `exchange.json` file to workspace root with the path to the root API file.
+* `API Contractor: Set current API file as root file` - Writes the `exchange.json` file to workspace root with the relative path to current API file.
+* `API Contractor: Convert current API file` - Shows the option menus with available conversion formats and syntaxes and converts the current API file according to the selections.
 
 ## Available settings
 
@@ -42,7 +43,7 @@ can find currently supported features there.
 
 ##### Setting a root API file
 
-The `API Contractor: Set a root API file` command allows setting the root API file for the current workspace.
+The `API Contractor: Set current API file as root file` command allows setting the root API file for the current workspace.
 As the result, the `exchange.json` file will be created in the workspace root and contain a relative path to the main API file.
 This enables proper linking and validation for separate JSON/YAML files that are linked to the root API file.
 
@@ -59,7 +60,7 @@ You can configure this behavior by changing the `apiContractor.autoRenameRefs` o
 
 ##### API files preview
 
-Currently opened API file can be previewed with the API Console. A command to invoke API file preview is `ALS: Preview current API file`.
+Currently opened API file can be previewed and tried out with the API Console. A command to invoke API file preview is `ALS: Preview current API file`.
 
 #### API format conversion
 

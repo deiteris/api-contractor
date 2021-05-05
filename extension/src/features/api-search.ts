@@ -11,7 +11,7 @@ export interface ApiFormat {
 /**
  * Finds API files and returns the list of file paths relative to given location.
  */
-export async function findApiFiles(workdir: string): Promise<Array<string>> {
+export async function findApiFiles(workdir: string): Promise<string[]> {
     const items = await fs.readdir(workdir)
     const exts = SUPPORTED_EXTENSIONS
     const popularNames = ['api.raml', 'api.json', 'api.yaml', 'api.yml']
