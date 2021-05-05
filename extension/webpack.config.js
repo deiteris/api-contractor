@@ -32,6 +32,12 @@ const config = {
                 loader: 'ts-loader'
             }]
         }]
-    }
+    },
+    ignoreWarnings: [
+        {
+            module: /node_modules\/express\/lib\/view\.js/,
+            message: /the request of a dependency is an expression/
+        },
+    ],
 };
 module.exports = config;
