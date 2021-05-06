@@ -322,10 +322,15 @@ export async function activate(ctx: ExtensionContext) {
         const vendorJsUri = panel.webview.asWebviewUri(Uri.file(vendorJs))
         const apicBuildJsUri = panel.webview.asWebviewUri(Uri.file(apicJs))
 
-        const origin = `vscode-webview://${vendorJsUri.authority}`
+        let authority = vendorJsUri.authority
+        if (authority.indexOf('.') !== -1) {
+            authority = authority.slice(0, authority.indexOf('.'))
+        }
+        const origin = `vscode-webview://${authority}`
         const nonce = crypto.randomBytes(16).toString('base64')
         const apicProxy = new ApiConsoleProxy(origin)
-        const webServerUri = await env.asExternalUri(Uri.parse(`http://127.0.0.1:${apicProxy.httpPort}`))
+        const httpPort = await apicProxy.run()
+        const webServerUri = await env.asExternalUri(Uri.parse(`http://127.0.0.1:${httpPort}`))
         panel.webview.html = `
         <!doctype html>
         <html lang="en">
@@ -335,42 +340,86 @@ export async function activate(ctx: ExtensionContext) {
                 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
                 <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1,user-scalable=yes">
                 <title>API Console</title>
+                <style>
+                    #loader {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        display: flex;
+                        align-items: center;
+                        flex-direction: column;
+                        justify-content: center;
+                    }
+                    .lds-dual-ring {
+                        display: inline-block;
+                        width: 80px;
+                        height: 80px;
+                    }
+                    .lds-dual-ring:after {
+                        content: " ";
+                        display: block;
+                        width: 64px;
+                        height: 64px;
+                        margin: 8px;
+                        border-radius: 50%;
+                        border: 6px solid #fff;
+                        border-color: #fff transparent #fff transparent;
+                        animation: lds-dual-ring 1.2s linear infinite;
+                    }
+                    @keyframes lds-dual-ring {
+                        0% {
+                            transform: rotate(0deg);
+                        }
+                        100% {
+                            transform: rotate(360deg);
+                        }
+                    }
+                </style>
             </head>
             <body>
                 <script src="${vendorJsUri.toString()}"></script>
                 <api-console-app app rearrangeEndpoints proxy="${webServerUri}proxy?url=" proxyEncodeUrl redirectUri="${webServerUri}oauth-callback"></api-console-app>
+                <div id="loader">
+                    <div class="lds-dual-ring"></div>
+                </div>
                 <script type="module" src="${apicBuildJsUri.toString()}"></script>
                 <script nonce="${nonce}">
-                    document.addEventListener('WebComponentsReady', function () {
-                        if (!window.ShadyCSS) {
-                            return;
-                        }
-
-                        function shouldAddDocumentStyle(n) {
-                            return n.nodeType === Node.ELEMENT_NODE && n.localName === 'style' && !n.hasAttribute('scope');
-                        }
-                        const CustomStyleInterface = window.ShadyCSS.CustomStyleInterface;
-
-                        const candidates = document.querySelectorAll('style');
-                        for (let i = 0; i < candidates.length; i++) {
-                            const candidate = candidates[i];
-                            if (shouldAddDocumentStyle(candidate)) {
-                                CustomStyleInterface.addCustomStyle(candidate);
+                    (function() {
+                        document.addEventListener('WebComponentsReady', function () {
+                            if (!window.ShadyCSS) {
+                                return;
                             }
-                        }
-                    });
 
-                    const apic = document.querySelector('api-console-app');
-                    window.addEventListener('message', function (e) {
-                        console.log(e);
-                        const model = JSON.parse(e.data);
-                        apic.amf = model;
-                    });
+                            function shouldAddDocumentStyle(n) {
+                                return n.nodeType === Node.ELEMENT_NODE && n.localName === 'style' && !n.hasAttribute('scope');
+                            }
+                            const CustomStyleInterface = window.ShadyCSS.CustomStyleInterface;
 
-                    const vscode = acquireVsCodeApi();
-                    vscode.postMessage({
-                        ready: true
-                    }, '*');
+                            const candidates = document.querySelectorAll('style');
+                            for (let i = 0; i < candidates.length; i++) {
+                                const candidate = candidates[i];
+                                if (shouldAddDocumentStyle(candidate)) {
+                                    CustomStyleInterface.addCustomStyle(candidate);
+                                }
+                            }
+                        });
+
+                        window.addEventListener('message', function (e) {
+                            const apic = document.querySelector('api-console-app');
+                            const loader = document.querySelector('#loader');
+                            const model = JSON.parse(e.data);
+                            apic.amf = model;
+                            apic.resetSelection();
+                            loader.style.display = 'none';
+                        });
+
+                        const vscode = acquireVsCodeApi();
+                        vscode.postMessage({
+                            ready: true
+                        }, '*');
+                    })();
                 </script>
             </body>
         </html>`
@@ -468,7 +517,7 @@ export async function activate(ctx: ExtensionContext) {
                 socket.on('end', () => console.log("[ALS] Disconnected"))
             }).on('error', (err) => { throw err })
 
-            server.listen(() => {
+            server.listen(0, '127.0.0.1', () => {
                 const jarPath = ctx.asAbsolutePath(path.join('assets', 'als-server-assembly.jar'))
 
                 const address = server.address()

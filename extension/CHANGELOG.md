@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.1
+
+### Changes
+
+* The API file preview shows loading animation.
+
+* When API file preview is loaded, the `Summary` section will be selected by default when available.
+
+### Security
+
+Restrict local servers to listen only on `127.0.0.1`.
+
+### Fixes
+
+Fix the Try It functionality for VS Code 1.56.
+
 ## 1.2.0
 
 ### Features

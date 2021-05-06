@@ -5,16 +5,15 @@ import { URL } from 'url'
 
 export class ApiConsoleProxy {
     private app: express.Express
-    private httpServer: http.Server | undefined
+    private httpServer: http.Server
     private origin: string
-    public httpPort: number | undefined
+    private httpPort: number | undefined
 
     constructor(origin: string) {
         this.app = express()
         this.origin = origin
-
+        this.httpServer = http.createServer(this.app)
         this.init()
-        this.run()
     }
 
     getTargetHost(req: express.Request) {
@@ -54,7 +53,6 @@ export class ApiConsoleProxy {
             res.send(`<!DOCTYPE html><html> <head> <meta charset="utf-8"> <title>Oauth2 callback window</title> <style>*[hidden]{display: none;}</style> </head> <body> <h1>Sending the authorization data to the application</h1> <p id="general-error" hidden> The window wasn't opened as a popup and therefore it can't pass the authorization information.<br/> This is an error. </p><script>const messageTarget=(window.opener || window.parent || window.top); if (!messageTarget || messageTarget===window || !messageTarget.postMessage){const elm=document.getElementById('general-error'); elm.removeAttribute('hidden');}else{const search=window.location.search.substr(1); if (search){messageTarget.postMessage(search, '*');}else{messageTarget.postMessage(window.location.hash.substr(1), '*');}}</script> </body></html>`)
         })
         this.app.use('/proxy', async (req, res, next) => {
-            console.log(req.get('origin'))
             if (!req.query.url) {
                 res.status(400).send('No proxy URL provided.')
                 return
@@ -91,14 +89,19 @@ export class ApiConsoleProxy {
         this.setRoutes()
     }
 
-    private run() {
-        this.httpServer = this.app.listen(0)
-        const address = this.httpServer.address()
-        if (!address) {
-            throw Error
-        }
-        this.httpPort = typeof address === 'object' ? address.port : 0
-        console.log(`[ACS] HTTP server listening on ${this.httpPort}.`)
+    async run(): Promise<number> {
+        return new Promise((resolve) => {
+            const server = this.httpServer.listen(0, '127.0.0.1', () => {
+                // @ts-ignore
+                const address = server.address()
+                if (!address) {
+                    throw Error
+                }
+                this.httpPort = typeof address === 'object' ? address.port : 0
+                console.log(`[ACS] HTTP server listening on ${this.httpPort}.`)
+                resolve(this.httpPort)
+            })
+        })
     }
 
     stop() {

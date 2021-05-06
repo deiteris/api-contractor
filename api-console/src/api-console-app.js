@@ -15,6 +15,24 @@ class CustomApiConsoleApp extends ApiConsoleApp {
           .proxy="${this.proxy}"
           .proxyEncodeUrl="${this.proxyEncodeUrl}"></xhr-simple-request>`;
     }
+
+    resetSelection() {
+        if (this.page !== 'docs') {
+            this.page = 'docs';
+        }
+        this.selectedShapeType = 'summary';
+        this.selectedShape = 'summary';
+    }
+
+    _apiNavigationOcurred(e) {
+        const { selected, type, passive } = e.detail;
+        const isPassive = passive === true;
+        if (!isPassive && this.page !== 'docs') {
+            this.closeTryIt();
+        }
+        this.selectedShape = selected;
+        this.selectedShapeType = type;
+    }
 }
 
 window.customElements.define('api-console-app', CustomApiConsoleApp);
