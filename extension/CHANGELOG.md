@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.2
+
+### Updates
+
+AML Language Server updated to [3.2.7](https://github.com/aml-org/als/releases/tag/v3.2.7).
+
+### Changes
+
+Root API file will not be automatically detected if `exchange.json` or root API file is deleted to prevent restarting the language server twice.
+
+### Improvements
+
+* Root API file is automatically detected before the language server starts. This reduces the necessity to restart the language server after it was loaded during extension activation and should improve extension initialization speed.
+
+* API file controller is initialized before the language server starts. This should improve the initialization speed of text highlight and UI.
+
 ## 1.2.1
 
 ### Changes

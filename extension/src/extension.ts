@@ -48,6 +48,7 @@ async function openMainApiSelection(workspaceRoot: string) {
     const fileUri = await window.showOpenDialog(options)
     if (fileUri && fileUri[0]) {
         await writeMainApiFile(workspaceRoot, fileUri[0].fsPath)
+        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
         return
     }
 }
@@ -64,7 +65,6 @@ async function writeMainApiFile(workspaceRoot: string, filePath: string) {
     const configPath = path.join(workspaceRoot, configFile)
     await fs.writeJSON(configPath, { main })
     apiDocumentController.updateFilename(main)
-    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
 }
 
 async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
@@ -96,13 +96,13 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
     }
 }
 
-async function checkMainApiFile(workspaceRoot: string) {
+async function checkMainApiFile(workspaceRoot: string, disableAutodetect = false) {
     const candidates = await findApiFiles(workspaceRoot)
     if (!candidates.length) {
         return
     }
     const autoDetectRootApi = workspace.getConfiguration('apiContractor').get('autoDetectRootApi')
-    if (autoDetectRootApi) {
+    if (autoDetectRootApi && !disableAutodetect) {
         if (candidates.length > 1) {
             window.showInformationMessage('There are multiple root API files in the workspace root. Please select a root API file manually.', 'Select file').then(async (selection) => {
                 if (selection) {
@@ -126,7 +126,7 @@ async function checkMainApiFile(workspaceRoot: string) {
     }
 }
 
-async function readMainApiFile(workspaceRoot: string | undefined) {
+async function readMainApiFile(workspaceRoot: string | undefined, disableAutodetect = false) {
     if (!workspaceRoot) {
         return
     }
@@ -142,7 +142,7 @@ async function readMainApiFile(workspaceRoot: string | undefined) {
         apiDocumentController.updateFilename(data.main)
     } catch {
         apiDocumentController.updateFilename(undefined)
-        await checkMainApiFile(workspaceRoot)
+        await checkMainApiFile(workspaceRoot, disableAutodetect)
     }
 }
 
@@ -245,6 +245,7 @@ export async function activate(ctx: ExtensionContext) {
         }
         const document = textEditor.document
         await writeMainApiFile(workspaceRoot, document.fileName)
+        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.Convert, async (textEditor) => {
@@ -425,6 +426,11 @@ export async function activate(ctx: ExtensionContext) {
         </html>`
     }))
 
+    apiDocumentController = new ApiDocumentController(documentSelector)
+    ctx.subscriptions.push(apiDocumentController)
+
+    await readMainApiFile(workspace.rootPath)
+
     // Create the language client and start the client.
     client = new LanguageClient(
         'apiContractor',
@@ -435,9 +441,6 @@ export async function activate(ctx: ExtensionContext) {
 
     // Start the client. This will also launch the server
     ctx.subscriptions.push(client.start())
-
-    apiDocumentController = new ApiDocumentController(documentSelector)
-    ctx.subscriptions.push(apiDocumentController)
 
     client.onReady().then(async () => {
         clientState = true
@@ -464,18 +467,13 @@ export async function activate(ctx: ExtensionContext) {
         ctx.subscriptions.push(workspace.onDidDeleteFiles(async (e) => {
             for (const file of e.files) {
                 if (path.basename(file.fsPath) === configFile || path.basename(file.fsPath) === apiDocumentController.filename) {
-                    // If API file auto detection is enabled, the file may appear before the file watcher notices the deletion
-                    // Debounce config file creation to prevent this race condition
-                    setTimeout(async () => {
-                        await readMainApiFile(workspace.rootPath)
-                    }, 500)
+                    await readMainApiFile(workspace.rootPath, true)
+                    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
                 }
             }
 
             await revalidate()
         }))
-
-        await readMainApiFile(workspace.rootPath)
     })
 
     async function revalidate() {
