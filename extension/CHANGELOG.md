@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.3.0
+
+### New
+
+#### JVM arguments
+
+JVM arguments can be provided in the `apiContractor.jvm.arguments` option to control the JVM memory management.
+If any errors occur and the language server doesn't start after the change of arguments, execute
+`Developer: Toggle Developer Tools` and look for ALS error messages in the `Console` tab.
+
+### Changes
+
+#### Themes support in the API preview
+
+The API Console now uses Visual Studio Code CSS variables to support themes.
+
+Current limitations:
+
+* High contrast themes are poorly supported right now. This may be improved with future releases.
+
+* Code highlighting is not supported in the Try It editor, code snippets section and request/response examples.
+
+#### Extension startup
+
+The extension will start up once the Visual Studio Code is loaded to fix scenarios, when a file is opened without a workspace or
+when there are no files in the workspace root.
+
+### Updates
+
+AML Language Server updated to [3.2.7-1](https://github.com/aml-org/als/releases/tag/v3.2.7-1).
+
 ## 1.2.2
 
 ### Updates

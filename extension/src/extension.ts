@@ -1,6 +1,5 @@
 // TODO: https://docs.42crunch.com/latest/content/concepts/api_contract_security_audit.htm
 // TODO: Show if the opened file is linked if main API file is set
-// TODO: Support vscode theming in the API console
 
 import * as net from 'net'
 import * as child_process from "child_process"
@@ -341,43 +340,6 @@ export async function activate(ctx: ExtensionContext) {
                 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
                 <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1,user-scalable=yes">
                 <title>API Console</title>
-                <style>
-                    #loader {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        display: flex;
-                        align-items: center;
-                        flex-direction: column;
-                        justify-content: center;
-                    }
-                    .lds-dual-ring {
-                        display: inline-block;
-                        width: 80px;
-                        height: 80px;
-                    }
-                    .lds-dual-ring:after {
-                        content: " ";
-                        display: block;
-                        width: 64px;
-                        height: 64px;
-                        margin: 8px;
-                        border-radius: 50%;
-                        border: 6px solid #fff;
-                        border-color: #fff transparent #fff transparent;
-                        animation: lds-dual-ring 1.2s linear infinite;
-                    }
-                    @keyframes lds-dual-ring {
-                        0% {
-                            transform: rotate(0deg);
-                        }
-                        100% {
-                            transform: rotate(360deg);
-                        }
-                    }
-                </style>
             </head>
             <body>
                 <script src="${vendorJsUri.toString()}"></script>
@@ -528,18 +490,20 @@ export async function activate(ctx: ExtensionContext) {
                     cwd: workspace.rootPath,
                 }
 
-                const args = [
+                const jvmArgs = <string[]>workspace.getConfiguration('apiContractor').get('jvm.arguments')
+                const args = jvmArgs.concat([
                     '-jar',
                     jarPath,
                     '--port',
                     port.toString()
-                ]
+                ])
                 console.log(`[ALS] Spawning at port: ${port}`)
                 process = child_process.spawn("java", args, options)
 
                 // See https://github.com/aml-org/als/issues/504
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
                 process.stdout.on('data', () => { })
+                process.stderr.on('data', (data) => { console.log(`[ALS] ${data.toString()}`) })
             })
         })
     }

@@ -29,6 +29,8 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 * `apiContractor.trace.server` - Traces the communication between VS Code and the language server.
 * `apiContractor.autoDetectRootApi` - Enables the root API file auto detection.
 * `apiContractor.autoRenameRefs` - Configures automatic rename of the referenced files. Works only when the workspace has the root API file set.
+* `apiContractor.notification.noMainApiFileSet` - Enables notification when no main API file is set.
+* `apiContractor.jvm.arguments` - Uses provided arguments to execute the JVM version of the language server.
 
 ## Features
 
@@ -75,6 +77,12 @@ Note:
 * Unused types will be lost during the conversion.
 
 * If there is a file with the same name as the resulting API file, it will be overwritten.
+
+##### JVM arguments
+
+JVM arguments can be provided in the `apiContractor.jvm.arguments` option to control the JVM memory management.
+If any errors occur and the language server doesn't start after the change of arguments, execute
+`Developer: Toggle Developer Tools` and look for ALS error messages in the `Console` tab.
 
 ### UI elements
 
