@@ -101,6 +101,7 @@ html {
     --api-resource-example-document-button-active-background-color: var(--vscode-button-background);
     --api-resource-example-document-button-active-color: var(--vscode-button-foreground);
 
+    --api-body-document-media-button-border-color: transparent;
     --api-type-document-media-button-border-color: transparent;
     --api-type-document-union-button-color: var(--vscode-button-secondaryForeground);
     --api-type-document-union-button-background-color: var(--vscode-button-secondaryBackground);
@@ -168,6 +169,7 @@ body {
     font-size: var(--vscode-font-size);
     font-weight: var(--vscode-font-weight);
     color: var(--primary-color);
+    background: var(--vscode-editor-background);
     height: 100%;
 }
 
