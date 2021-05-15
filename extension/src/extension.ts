@@ -374,7 +374,6 @@ export async function activate(ctx: ExtensionContext) {
                             const loader = document.querySelector('#loader');
                             const model = JSON.parse(e.data);
                             apic.amf = model;
-                            apic.resetSelection();
                             loader.style.display = 'none';
                         });
 

@@ -33,6 +33,11 @@ class CustomApiConsoleApp extends ApiConsoleApp {
         this.selectedShape = selected;
         this.selectedShapeType = type;
     }
+
+    async _processModelChange() {
+        await super._processModelChange();
+        this.resetSelection();
+    }
 }
 
 window.customElements.define('api-console-app', CustomApiConsoleApp);
