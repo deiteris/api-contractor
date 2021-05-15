@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.1
+
+### Changes
+
+#### Untrusted workspaces support
+
+The extension will be enabled in untrusted workspaces with all functionality available.
+
+#### Virtual workspaces support
+
+The extension will be disabled in the virtual workspaces due to the current implementation of language server and language server protocol.
+
+### Updates
+
+The API Console updated to [6.4.10](https://github.com/mulesoft/api-console/releases/tag/6.4.10).
+
+### Fixes
+
+* Fix wrong hotkey for suggestions in `README.md`.
+
+* Fix possible error when the API preview is loaded but the loading animation does not disappear and blocks the preview.
+
+* Fix the border style of union type buttons in payload examples.
+
 ## 1.3.0
 
 ### New
