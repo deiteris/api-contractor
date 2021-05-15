@@ -49,9 +49,13 @@ The `API Contractor: Set current API file as root file` command allows setting t
 As the result, the `exchange.json` file will be created in the workspace root and contain a relative path to the main API file.
 This enables proper linking and validation for separate JSON/YAML files that are linked to the root API file.
 
+![Setting root API file demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/set_root_file_command.gif)
+
 If the `exchange.json` file was not found in the workspace during the load or there are multiple API files,
 a notification message will appear with a proposal to set a root API file for the workspace. You can enable
 automatic detection of the root API file by enabling the `apiContractor.autoDetectRootApi` option.
+
+![Root API file auto detection demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/autodetect_root_file_opt.gif)
 
 The root API file setting does not limit validation of the files that are not linked to the root API file.
 
@@ -60,15 +64,21 @@ The root API file setting does not limit validation of the files that are not li
 When the root API file is set, the fragments' references will be automatically updated when their files are renamed.
 You can configure this behavior by changing the `apiContractor.autoRenameRefs` option.
 
+![Automatic rename of the referenced fragments demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/autorename_opt.gif)
+
 ##### API files preview
 
-Currently opened API file can be previewed and tried out with the API Console. A command to invoke API file preview is `ALS: Preview current API file`.
+Currently opened API file can be previewed and tried out with the API Console. A command to invoke API file preview is `API Contractor: Preview current API file`.
+
+![API file preview demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/preview_command.gif)
 
 #### API format conversion
 
 The `API Contractor: Convert current API file` command allows converting currently opened API file. When the command
 is invoked, the pick menu will appear with supported conversion formats. After the conversion is done, a new API file
 in selected format will appear.
+
+![Conversion demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/conversion_command.gif)
 
 Note:
 
@@ -91,17 +101,29 @@ If any errors occur and the language server doesn't start after the change of ar
 If a root API file is selected for current project, the status bar will show a path to it; otherwise,
 the status bar will show `No root API file`.
 
-When the status bar is clicked, the `API Contractor: Set a root API file` command is invoked.
+When no root API file set:
+
+![No root file set](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/no_root_file_set.png)
+
+When root API file set:
+
+![Root file set](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/root_file_set.png)
+
+When the status bar is clicked, the file selection window will be opened in the current workspace root.
 
 #### Status bar for the format of currently opened API file
 
 When an API file is opened, its format will be shown in the status bar.
 
+![API file format](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/api_format.png)
+
 When the status bar is clicked, the `API Contractor: Convert current API file` command is invoked.
 
 #### Current API file preview button
 
-When an API file is opened, a button for previewing of the current API file will appear in the editor toolbar.
+When an API file is opened, a button for previewing the current API file will appear in the editor toolbar.
+
+![API file preview button](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/preview_button.png)
 
 ## Known issues
 
@@ -116,7 +138,7 @@ If a named capture group is [valid according to the ECMA-262 regular expression 
 ### How to enable autocomplete?
 
 To enable autocomplete and snippets on typing, enable the `editor.quickSuggestions` setting in VS Code. Otherwise,
-use the `CTRL+B` hotkey.
+use the `CTRL+SPACE` hotkey.
 
 ## Development
 
