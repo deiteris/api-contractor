@@ -12,8 +12,8 @@ import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes } from './server-types'
-import { Socket } from 'node:net'
-import { ChildProcessWithoutNullStreams } from 'node:child_process'
+import { Socket } from 'net'
+import { ChildProcessWithoutNullStreams } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
 import { ApiConsoleProxy } from './features/api-console-proxy'
 
@@ -350,25 +350,6 @@ export async function activate(ctx: ExtensionContext) {
                 <script type="module" src="${apicBuildJsUri.toString()}"></script>
                 <script nonce="${nonce}">
                     (function() {
-                        document.addEventListener('WebComponentsReady', function () {
-                            if (!window.ShadyCSS) {
-                                return;
-                            }
-
-                            function shouldAddDocumentStyle(n) {
-                                return n.nodeType === Node.ELEMENT_NODE && n.localName === 'style' && !n.hasAttribute('scope');
-                            }
-                            const CustomStyleInterface = window.ShadyCSS.CustomStyleInterface;
-
-                            const candidates = document.querySelectorAll('style');
-                            for (let i = 0; i < candidates.length; i++) {
-                                const candidate = candidates[i];
-                                if (shouldAddDocumentStyle(candidate)) {
-                                    CustomStyleInterface.addCustomStyle(candidate);
-                                }
-                            }
-                        });
-
                         window.addEventListener('message', function (e) {
                             const apic = document.querySelector('api-console-app');
                             const loader = document.querySelector('#loader');
