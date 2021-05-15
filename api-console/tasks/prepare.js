@@ -1,6 +1,5 @@
 const UglifyJS = require('uglify-js');
 const fs = require('fs-extra');
-const path = require('path');
 
 const CryptoFiles = [
   'cryptojslib/components/core.js',
@@ -37,7 +36,7 @@ async function prepare() {
   }
 
   const result = UglifyJS.minify(code);
-  await fs.writeFile(path.join('vendor.js'), result.code, 'utf8');
+  await fs.writeFile('vendor.js', result.code, 'utf8');
 }
 
 prepare();

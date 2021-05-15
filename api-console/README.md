@@ -2,12 +2,28 @@
 
 Based on https://github.com/mulesoft/api-console
 
-## Building
+## Developing
+
+### Before you start
 
 1. Run `npm i` to install all dependencies.
 
-1. Run `npm run build` to build the API console. The files will appear in the `dist` folder.
+1. Run `npm run build:vendor` to build `vendor.js`. The file will appear in the root folder.
 
-## Embedding the output into extension
+### Live previewing
 
-Rename the javascript file that is formatted like `204c1d73.js` to `apic-build.js`, then copy this file and `vendor.js` to `../extension/assets/api-console/`.
+1. Run `npm start` to start the development server.
+
+1. Open `http://127.0.0.1:8000/demo/index.html`.
+
+1. Edit `src/styles.css` and/or `src/api-console.app.js`. The preview will be automatically reloaded on modifications.
+
+### Building
+
+Run `npm run build` to build the API console. The files will appear in the `dist` folder and will be copied to `../extension/assets/api-console/`.
+
+## Useful links
+
+Visual Studio Code Theme Color Reference: https://code.visualstudio.com/api/references/theme-color
+
+Visual Studio Code CSS theme completions plugin: https://github.com/connor4312/vscode-css-theme-completions

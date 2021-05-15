@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <title>API Console</title>
+  <link rel="stylesheet" type="text/css" href="./../src/styles.css">
+  <link rel="stylesheet" type="text/css" href="./vscode-vars-dark.css">
+</head>
+
+<body class="vscode-dark">
+  <script src="./../vendor.js"></script>
+  <api-console-app app rearrangeEndpoints modelLocation="./model.json"></api-console-app>
+  <div id="loader">
+    <div class="lds-dual-ring"></div>
+  </div>
+  <script type="module" src="./../src/api-console-app.js"></script>
+  <script>
+    (function () {
+      document.addEventListener('WebComponentsReady', function () {
+        if (!window.ShadyCSS) {
+          return;
+        }
+
+        function shouldAddDocumentStyle(n) {
+          return n.nodeType === Node.ELEMENT_NODE && n.localName === 'style' && !n.hasAttribute('scope');
+        }
+        const CustomStyleInterface = window.ShadyCSS.CustomStyleInterface;
+
+        const candidates = document.querySelectorAll('style');
+        for (let i = 0; i < candidates.length; i++) {
+          const candidate = candidates[i];
+          if (shouldAddDocumentStyle(candidate)) {
+            CustomStyleInterface.addCustomStyle(candidate);
+          }
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.querySelector('#loader');
+        loader.style.display = 'none';
+      });
+    })();
+  </script>
+</body>
+
+</html>
