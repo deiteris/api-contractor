@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.3.2
+
+### API preview improvements
+
+* Use VS Code debug token colors to provide proper code highlight.
+
+* Use editor foreground color for preformatted text and code tags.
+
+* Fix colors of documentation that was toggled inside the Try It section.
+
+* Fix color of the file information when uploading a file with multipart form.
+
+* Improve colors for high contrast themes.
+
+* Fix content overflow of the documentation section. Now the items inside the documentation section are scrollable instead of the entire documentation section.
+
+* Fix overflow property of the API console element to reduce bottom scrollbar.
+
+* Fix selection highlight inside code tags.
+
+### Known issues
+
+* Code highlight inside request body editor does not exactly match the highlight inside examples (f.e., json fields have the same color as string values).
+
+* Code highlight in code examples may be inconsistent or incorrect in some cases.
+
 ## 1.3.1
 
 ### Changes
