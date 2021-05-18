@@ -1,8 +1,19 @@
 import { html } from 'lit-element';
 import { ApiConsoleApp } from 'api-console/src/ApiConsoleApp.js';
+import styles from './api-console-styles.js';
 
 /* This class overrides ApiConsoleApp methods to customize existing API Console features */
 class CustomApiConsoleApp extends ApiConsoleApp {
+    /**
+     * @type {CSSResult[]}
+     */
+    static get styles() {
+        return [
+            /** @type CSSResult */ (ApiConsoleApp.styles),
+            styles,
+        ];
+    }
+
     /*
      * Override _helpersTemplate() to remove redundant 'oauth-authorization'
      * elements since they are already created in the 'api-request-editor' element somehow.

@@ -3,7 +3,7 @@ html {
     --accent-color: var(--vscode-focusBorder);
     --code-background-color: var(--vscode-textCodeBlock-background);
     --error-color: var(--vscode-errorForeground);
-    --code-color: var(--vscode-textPreformat-foreground);
+    --code-color: var(--vscode-editor-foreground);
     --link-color: var(--vscode-textLink-foreground);
     --arc-font-code-family: var(--vscode-editor-font-family);
 
@@ -31,28 +31,34 @@ html {
     --code-mirror-gutters-background-color: var(--vscode-editor-background);
     --code-mirror-cursor-color: var(--vscode-editorCursor-foreground);
     --code-mirror-height: 50px;
+    --code-mirror-line-number-color: var(--vscode-editorLineNumber-foreground);
 
-    --code-property-value-color: var(--vscode-symbolIcon-fieldForeground);
+    --code-property-value-color: var(--vscode-debugTokenExpression-boolean);
     --code-operator-value-background-color: transparent;
     --code-operator-value-color: var(--primary-color);
-    --code-type-number-value-color: var(--vscode-symbolIcon-numberForeground);
-    --code-type-text-value-color: var(--vscode-symbolIcon-stringForeground);
-    --code-punctuation-value-color: var(--vscode-symbolIcon-operatorForeground);
-    --code-function-value-color: var(--vscode-symbolIcon-functionForeground);
-    --code-type-boolean-value-color: var(--vscode-symbolIcon-booleanForeground);
+    --code-type-number-value-color: var(--vscode-debugTokenExpression-number);
+    --code-type-text-value-color: var(--vscode-debugTokenExpression-string);
+    --code-punctuation-value-color: var(--primary-color);
+    --code-function-value-color: var(--vscode-debugTokenExpression-boolean);
+    --code-type-boolean-value-color: var(--vscode-debugTokenExpression-boolean);
 
-    --http-code-snippet-code-keyword-color: var(--vscode-symbolIcon-keywordForeground);
-    --http-code-snippet-code-function-color: var(--vscode-symbolIcon-functionForeground);
+    --http-code-snippet-code-keyword-color: var(--vscode-debugTokenExpression-boolean);
+    --http-code-snippet-code-function-color: var(--vscode-debugTokenExpression-boolean);
+    --http-code-snippet-code-cdata-color: var(--vscode-debugTokenExpression-value);
     --http-code-snippet-code-text-shadow: none;
 
-    --code-mirror-string-color: var(--vscode-symbolIcon-stringForeground);
-    --code-mirror-number-color: var(--vscode-symbolIcon-numberForeground);
-    --code-mirror-atom-color: var(--vscode-symbolIcon-booleanForeground);
-    --code-mirror-punctuation-color: var(--vscode-symbolIcon-operatorForeground);
+    --code-mirror-string-color: var(--vscode-debugTokenExpression-string);
+    --code-mirror-number-color: var(--vscode-debugTokenExpression-number);
+    --code-mirror-atom-color: var(--vscode-debugTokenExpression-boolean);
+    --code-mirror-punctuation-color: var(--primary-color);
+    --code-mirror-variable-color: var(--primary-color);
     --code-mirror-selected-background-color: var(--vscode-editor-selectionBackground);
     --code-mirror-focused-selected-background-color: var(--vscode-editor-selectionBackground);
 
     --markdown-styles-code-text-shadow: none;
+    --markdown-styles-code-selection-background-color: var(--vscode-editor-selectionBackground);
+    --prism-container-selection-background-color: var(--vscode-editor-selectionBackground);
+    --http-code-snippet-code-selection-background-color: var(--vscode-editor-selectionBackground);
 
     --api-summary-separator-color: var(--vscode-textSeparator-foreground);
     --api-parameters-document-title-border-color: var(--vscode-textSeparator-foreground);
@@ -62,6 +68,13 @@ html {
     --raml-type-form-input-array-border-color: var(--vscode-textSeparator-foreground);
     --json-table-item-border-bottom-color: var(--vscode-textSeparator-foreground);
     --property-shape-document-border-bottom-color: var(--vscode-textSeparator-foreground);
+    --response-tabs-border-color: var(--vscode-textSeparator-foreground);
+    --api-responses-document-codes-selector-divider-border-bottom-color: var(--vscode-textSeparator-foreground);
+
+    --json-table-complex-name-label-color: var(--vscode-descriptionForeground);
+    --json-table-array-body-color: var(--primary-color);
+    --json-table-array-header-color: var(--vscode-descriptionForeground);
+    --anypoint-button-disabled-color: var(--vscode-descriptionForeground);
 
     --anypoiont-dropdown-shaddow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
     --anypoiont-autocomplete-dropdown-shaddow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
@@ -69,19 +82,19 @@ html {
     --anypoint-input-background-color: var(--vscode-input-background);
     --anypoint-input-input-color: var(--vscode-input-foreground);
     --anypoint-input-info-message-color: var(--vscode-editorInfo-foreground);
+    --anypoint-input-label-color: var(--vscode-input-placeholderForeground);
     --anypoint-dropdown-menu-background-color: var(--vscode-input-background);
     --anypoint-dropdown-menu-label-color: var(--vscode-input-placeholderForeground);
     --anypoint-dropdown-menu-trigger-icon-active-color: var(--vscode-icon-foreground);
     --anypoint-dropdown-menu-hover-border-color: var(--accent-color);
-    --anypoint-input-label-color: var(--vscode-input-placeholderForeground);
     --anypoint-listbox-background-color: var(--vscode-input-background);
     --anypoint-item-hover-background-color: var(--vscode-inputOption-activeBackground);
     --anypoint-item-focused-background-color: var(--vscode-inputOption-activeBackground);
     --anypoint-item-before-opacity: 0;
 
     --anypoint-icon-button-color: var(--vscode-icon-foreground);
-    --anypoint-icon-button-emphasis-low-hover-background-color: var(--vscode-toolbar-hoverBackground);
-    --anypoint-icon-button-emphasis-low-focus-background-color: var(--vscode-toolbar-activeBackground);
+    --anypoint-icon-button-emphasis-low-hover-background-color: var(--vscode-toolbar-hoverBackground, transparent);
+    --anypoint-icon-button-emphasis-low-focus-background-color: var(--vscode-toolbar-activeBackground, transparent);
     --anypoint-icon-button-emphasis-low-color: var(--vscode-icon-foreground);
 
     --anypoint-button-background-color: transparent;
@@ -90,23 +103,23 @@ html {
     --anypoint-button-emphasis-low-focus-background-color: transparent;
     --anypoint-button-emphasis-low-focus-color: var(--primary-color);
 
-    --anypoint-button-emphasis-high-hover-background-color: var(--vscode-button-hoverBackground);
-    --anypoint-button-emphasis-high-background-color: var(--vscode-button-background);
+    --anypoint-button-emphasis-high-hover-background-color: var(--vscode-button-hoverBackground, transparent);
+    --anypoint-button-emphasis-high-background-color: var(--vscode-button-background, transparent);
     --anypoint-button-emphasis-high-color: var(--vscode-button-foreground);
 
     --anypoint-button-emphasis-medium-hover-background-color: transparent;
     --anypoint-button-emphasis-medium-focus-border-color: var(--vscode-contrastBorder, var(--primary-color));
     --anypoint-button-emphasis-medium-focus-color: var(--primary-color);
 
-    --api-resource-example-document-button-active-background-color: var(--vscode-button-background);
+    --api-resource-example-document-button-active-background-color: var(--vscode-button-background, transparent);
     --api-resource-example-document-button-active-color: var(--vscode-button-foreground);
 
     --api-body-document-media-button-border-color: transparent;
     --api-type-document-media-button-border-color: transparent;
     --api-type-document-union-button-color: var(--vscode-button-secondaryForeground);
-    --api-type-document-union-button-background-color: var(--vscode-button-secondaryBackground);
+    --api-type-document-union-button-background-color: var(--vscode-button-secondaryBackground, transparent);
     --api-type-document-union-button-active-color: var(--vscode-button-secondaryForeground);
-    --api-type-document-union-button-active-background-color: var(--vscode-button-hoverBackground);
+    --api-type-document-union-button-active-background-color: var(--vscode-button-hoverBackground, transparent);
 
     --api-type-document-type-attribute-color: var(--primary-color);
     --api-method-documentation-description-color: var(--primary-color);
@@ -119,11 +132,22 @@ html {
     --api-type-document-property-title-secondary-color: var(--primary-color);
     --json-table-list-property-name-color: var(--primary-color);
     --no-info-message-color: var(--primary-color);
+    --multipart-file-form-item-counter-color: var(--primary-color);
 
-    --api-type-document-trait-background-color: var(--vscode-button-secondaryHoverBackground);
-    --api-type-document-trait-color: var(--vscode-button-secondaryForeground);
-    --api-type-document-type-background-color: var(--vscode-button-hoverBackground);
-    --api-type-document-type-color: var(--vscode-button-foreground);
+    --inline-documentation-background-color: transparent;
+    --inline-documentation-color: var(--primary-color);
+
+    --response-code-line-numbers-border-color: transparent;
+    --response-code-toggle-line-border-color: var(--primary-color);
+
+    --response-status-view-request-url-background-color: var(--code-background-color);
+    --response-status-view-request-url-color: var(--code-color);
+    --response-code-line-numbers-color: var(--vscode-editorLineNumber-foreground);
+
+    --api-type-document-trait-background-color: var(--vscode-button-secondaryHoverBackground, transparent);
+    --api-type-document-trait-color: var(--vscode-button-secondaryForeground, var(--primary-color));
+    --api-type-document-type-background-color: var(--vscode-button-hoverBackground, transparent);
+    --api-type-document-type-color: var(--vscode-button-foreground, var(--primary-color));
 
     --arc-font-body1-font-size: var(--vscode-font-size);
     --arc-font-body1-font-weight: var(--vscode-font-weight);
@@ -146,9 +170,9 @@ html {
     --arc-font-subhead-font-weight: 400;
     --arc-font-subhead-line-height: 1.2;
 
-    --api-navigation-list-item-selected-background-color: var(--vscode-toolbar-activeBackground);
+    --api-navigation-list-item-selected-background-color: var(--vscode-toolbar-activeBackground, transparent);
     --api-navigation-list-item-selected-color: var(--primary-color);
-    --api-navigation-section-title-focus-background-color: var(--vscode-toolbar-hoverBackground);
+    --api-navigation-section-title-focus-background-color: var(--vscode-toolbar-hoverBackground, transparent);
     --api-navigation-operation-font-size: 13px;
     --dark-divider-opacity: 0.1;
 
@@ -158,6 +182,11 @@ html {
     --http-method-label-text-align: center;
     --api-method-documentation-http-method-label-font-size: calc(var(--http-method-label-font-size) + 6px);
     --api-method-documentation-http-method-label-min-width: calc(var(--http-method-label-min-width) + 17px);
+
+    --apic-tryit-wide-border-color: var(--vscode-contrastBorder, transparent);
+    --apic-powered-by-border-color: var(--vscode-contrastBorder, var(--vscode-textSeparator-foreground));
+    --apic-drawer-content-wrapper-border-color: var(--vscode-contrastBorder, transparent);
+    --apic-app-header-border-color: var(--vscode-contrastBorder, transparent);
 
     /* --api-body-document-media-button-background-color: #2196F3; */
 }
@@ -203,7 +232,9 @@ body.vscode-light {
     --http-method-label-connect-background-color: #fff;
 }
 
-body.vscode-dark {
+/* TODO: Probably improve high contrast HTTP labels */
+body.vscode-dark,
+body.vscode-high-contrast {
     --http-get-color: rgba(0, 128, 0, 0.74);
     --http-post-color: rgba(33, 150, 243, 0.74);
     --http-put-color: rgba(255, 165, 0, 0.74);
@@ -235,10 +266,6 @@ body.vscode-dark {
 
 .drawer-content-wrapper {
     color: var(--vscode-menu-foreground);
-}
-
-code[class*=language-], pre[class*=language-] {
-    background: var(--vscode-editor-background);
 }
 
 .CodeMirror {
