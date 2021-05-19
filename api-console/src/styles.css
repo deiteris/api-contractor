@@ -41,6 +41,7 @@ html {
     --code-punctuation-value-color: var(--primary-color);
     --code-function-value-color: var(--vscode-debugTokenExpression-boolean);
     --code-type-boolean-value-color: var(--vscode-debugTokenExpression-boolean);
+    --code-keyword-value-color: var(--vscode-debugTokenExpression-boolean);
 
     --http-code-snippet-code-keyword-color: var(--vscode-debugTokenExpression-boolean);
     --http-code-snippet-code-function-color: var(--vscode-debugTokenExpression-boolean);
