@@ -47,7 +47,9 @@ class CustomApiConsoleApp extends ApiConsoleApp {
 
     async _processModelChange() {
         await super._processModelChange();
-        this.resetSelection();
+        if (!this.selectedShape && !this.selectedShapeType) {
+            this.resetSelection();
+        }
     }
 }
 
