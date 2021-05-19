@@ -361,7 +361,7 @@ export async function activate(ctx: ExtensionContext) {
             </head>
             <body>
                 <script src="${vendorJsUri.toString()}"></script>
-                <api-console-app app rearrangeEndpoints proxy="${webServerUri}proxy?url=" proxyEncodeUrl redirectUri="${webServerUri}oauth-callback"></api-console-app>
+                <api-console-app app rearrangeEndpoints allowCustom allowCustomBaseUri proxy="${webServerUri}proxy?url=" proxyEncodeUrl redirectUri="${webServerUri}oauth-callback"></api-console-app>
                 <div id="loader">
                     <div class="lds-dual-ring"></div>
                 </div>
