@@ -7,7 +7,7 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
-import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env } from 'vscode'
+import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
@@ -298,23 +298,41 @@ export async function activate(ctx: ExtensionContext) {
         const panel = window.createWebviewPanel(
             'apiFilePreview',
             `API Console: ${path.basename(uri)}`,
-            ViewColumn.One,
+            ViewColumn.Two,
             {
                 enableScripts: true,
                 localResourceRoots: [Uri.file(path.join(ctx.extensionPath, 'assets', 'api-console'))],
                 retainContextWhenHidden: true
             }
         )
+
+        async function sendSerializedDocument() {
+            const payload: SerializationPayload = { documentIdentifier: { uri } }
+            const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
+            panel.webview.postMessage({content: data.content})
+        }
+
+        const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        let documentWatcher = new Disposable(() => {})
+        if (autoReloadPreview) {
+            documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
+                if (textDocument.fileName === document.fileName) {
+                    panel.webview.postMessage({reload: true})
+                    await sendSerializedDocument()
+                }
+            })
+        }
+
         panel.webview.onDidReceiveMessage(async (event) => {
             if (event.ready === true) {
-                const payload: SerializationPayload = { documentIdentifier: { uri } }
-                const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
-                panel.webview.postMessage(data.content)
+                await sendSerializedDocument()
             }
         }, undefined, ctx.subscriptions)
 
         panel.onDidDispose(() => {
             apicProxy.stop()
+            documentWatcher.dispose()
         }, undefined, ctx.subscriptions)
 
         const vendorJs = path.join(ctx.extensionPath, 'assets', 'api-console', 'vendor.js')
@@ -351,11 +369,16 @@ export async function activate(ctx: ExtensionContext) {
                 <script nonce="${nonce}">
                     (function() {
                         window.addEventListener('message', function (e) {
-                            const apic = document.querySelector('api-console-app');
-                            const loader = document.querySelector('#loader');
-                            const model = JSON.parse(e.data);
-                            apic.amf = model;
-                            loader.style.display = 'none';
+                            if (e.data.reload) {
+                                loader.style.display = 'flex';
+                            }
+                            if (e.data.content) {
+                                const apic = document.querySelector('api-console-app');
+                                const loader = document.querySelector('#loader');
+                                const model = JSON.parse(e.data.content);
+                                apic.amf = model;
+                                loader.style.display = 'none';
+                            }
                         });
 
                         const vscode = acquireVsCodeApi();
