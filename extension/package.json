@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "1.3.2",
+    "version": "1.4.0",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
@@ -106,7 +106,7 @@
                     "scope": "window",
                     "type": "boolean",
                     "default": true,
-                    "description": "Enables the root API file auto detection."
+                    "description": "Enables automatic detection and selection of the root API file."
                 },
                 "apiContractor.autoRenameRefs": {
                     "scope": "window",
@@ -117,6 +117,12 @@
                     ],
                     "default": "always",
                     "description": "Configures automatic rename of the referenced files. Works only when the workspace has the root API file set."
+                },
+                "apiContractor.autoReloadApiPreviewOnSave": {
+                    "scope": "window",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables automatic reload of the API file preview when it is saved. API file preview tabs must be reopened when this setting is changed."
                 },
                 "apiContractor.notification.noMainApiFileSet": {
                     "scope": "window",
@@ -206,11 +212,11 @@
         "eslint-config-prettier": "^8.3.0",
         "mocha": "^8.4.0",
         "rimraf": "^3.0.2",
-        "ts-loader": "^9.1.2",
+        "ts-loader": "^9.2.1",
         "typescript": "^4.2.4",
         "vsce": "^1.88.0",
         "vscode-test": "^1.5.2",
-        "webpack": "^5.37.0",
+        "webpack": "^5.37.1",
         "webpack-cli": "^4.7.0"
     },
     "scripts": {
