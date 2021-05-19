@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.0
+
+### New
+
+* API preview is reloaded on save by default. This feature is controlled by the new `apiContractor.autoReloadApiPreviewOnSave` option.
+
+### Changes
+
+* API preview now opens in a separate editor column instead of a tab.
+
+* Updated description of the `apiContractor.autoDetectRootApi` option.
+
+### API preview improvements
+
+* Allow custom query string parameters and headers to be provided in Try It.
+
+* Allow custom base URI in Try It.
+
+* Fix highlight color for `null` value in examples.
+
 ## 1.3.2
 
 ### API preview improvements
