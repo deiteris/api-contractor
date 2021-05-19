@@ -288,6 +288,7 @@ body.vscode-high-contrast {
     align-items: center;
     flex-direction: column;
     justify-content: center;
+    background: var(--vscode-editor-background);
 }
 
 .lds-dual-ring {
