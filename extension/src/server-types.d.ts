@@ -1,4 +1,4 @@
-import { DocumentUri, TextDocumentIdentifier, WorkspaceEdit } from "vscode-languageserver-types"
+import { DocumentUri, Range, TextDocumentIdentifier, WorkspaceEdit } from "vscode-languageserver-types"
 
 export interface SerializationPayload {
     documentIdentifier: TextDocumentIdentifier
@@ -13,6 +13,10 @@ export interface ConversionPayload {
     uri: DocumentUri,
     target: ConversionFormats,
     syntax?: ConversionSyntaxes
+}
+
+export interface FileUsagePayload {
+    uri: DocumentUri
 }
 
 export const enum ConversionFormats {
@@ -42,8 +46,14 @@ export interface ConversionResponse {
     content: string
 }
 
+interface FileUsageResponse {
+    uri: DocumentUri,
+    range: Range
+}
+
 export const enum RequestMethod {
     Serialization = 'serialization',
     RenameFile = 'renameFile',
-    Conversion = 'conversion'
+    Conversion = 'conversion',
+    FileUsage = 'fileUsage'
 }

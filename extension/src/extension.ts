@@ -11,7 +11,7 @@ import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDia
 import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
-import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes } from './server-types'
+import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse } from './server-types'
 import { Socket } from 'net'
 import { ChildProcessWithoutNullStreams } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
@@ -312,14 +312,26 @@ export async function activate(ctx: ExtensionContext) {
             panel.webview.postMessage({content: data.content})
         }
 
+        let fileUsage: string[] = []
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         let documentWatcher = new Disposable(() => {})
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        let fileUsageWatcher = new Disposable(() => {})
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
-                if (textDocument.fileName === document.fileName) {
+                if (textDocument.fileName === document.fileName || fileUsage.includes(uri)) {
                     panel.webview.postMessage({reload: true})
                     await sendSerializedDocument()
+                }
+            })
+            fileUsageWatcher = window.onDidChangeActiveTextEditor(async (editor) => {
+                const document = editor?.document
+                if (document && SUPPORTED_EXTENSIONS.includes(path.extname(document.fileName))) {
+                    const uri =  client.code2ProtocolConverter.asUri(document.uri)
+                    const payload: FileUsagePayload = { uri }
+                    const data: Array<FileUsageResponse> = await client.sendRequest(RequestMethod.FileUsage, payload)
+                    fileUsage = data.map((location) => {return location.uri})
                 }
             })
         }
@@ -333,6 +345,7 @@ export async function activate(ctx: ExtensionContext) {
         panel.onDidDispose(() => {
             apicProxy.stop()
             documentWatcher.dispose()
+            fileUsageWatcher.dispose()
         }, undefined, ctx.subscriptions)
 
         const vendorJs = path.join(ctx.extensionPath, 'assets', 'api-console', 'vendor.js')
