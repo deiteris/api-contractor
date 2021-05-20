@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.1
+
+### API preview improvements
+
+If the root API file is set, the API file preview will be updated when its referenced files are saved.
+
+### Documentation
+
+* Readme updated with the new `apiContractor.autoReloadApiPreviewOnSave` option and updated description for `apiContractor.autoDetectRootApi`.
+
+* Added gif with the demonstration of basic language server features.
+
+* Updated documentation for the **API files preview** section in readme.
+
 ## 1.4.0
 
 ### New
