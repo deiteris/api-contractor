@@ -27,10 +27,11 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 ## Available settings
 
 * `apiContractor.trace.server` - Traces the communication between VS Code and the language server.
-* `apiContractor.autoDetectRootApi` - Enables the root API file auto detection.
+* `apiContractor.autoDetectRootApi` - Enables automatic detection and selection of the root API file.
 * `apiContractor.autoRenameRefs` - Configures automatic rename of the referenced files. Works only when the workspace has the root API file set.
 * `apiContractor.notification.noMainApiFileSet` - Enables notification when no main API file is set.
 * `apiContractor.jvm.arguments` - Uses provided arguments to execute the JVM version of the language server.
+* `apiContractor.autoReloadApiPreviewOnSave` - Enables automatic reload of the API file preview when it is saved. API file preview tabs must be reopened when this setting is changed. Note: in structured projects where root API file is set, the API file preview will be also reloaded when its referenced files are saved.
 
 ## Features
 
@@ -40,6 +41,8 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 
 Language functionality relies on [LSP support in ALS](https://github.com/aml-org/als#lsp-support-in-als). You
 can find currently supported features there.
+
+![Basic language features demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/language_demo.gif)
 
 #### Custom
 
@@ -69,6 +72,8 @@ You can configure this behavior by changing the `apiContractor.autoRenameRefs` o
 ##### API files preview
 
 Currently opened API file can be previewed and tried out with the API Console. A command to invoke API file preview is `API Contractor: Preview current API file`.
+
+If the `apiContractor.autoReloadApiPreviewOnSave` option is enabled, the API file preview is updated when the previewed API file is saved.
 
 ![API file preview demonstration](https://raw.githubusercontent.com/deiteris/api-contractor/master/docs/images/preview_command.gif)
 
