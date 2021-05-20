@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
@@ -122,7 +122,7 @@
                     "scope": "window",
                     "type": "boolean",
                     "default": true,
-                    "description": "Enables automatic reload of the API file preview when it is saved. API file preview tabs must be reopened when this setting is changed."
+                    "description": "Enables automatic reload of the API file preview when it is saved. API file preview tabs must be reopened when this setting is changed. Note: in structured projects where root API file is set, the API file preview will be also reloaded when its referenced files are saved."
                 },
                 "apiContractor.notification.noMainApiFileSet": {
                     "scope": "window",
