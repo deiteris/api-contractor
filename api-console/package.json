@@ -28,7 +28,7 @@
     "eslint-config-prettier": "^8.3.0",
     "husky": "^6.0.0",
     "lint-staged": "^11.0.0",
-    "postcss": "^8.2.15",
+    "postcss": "^8.3.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.48.0",
     "rollup-plugin-cpy": "^2.0.1",
