@@ -1,4 +1,4 @@
-import { DocumentUri, Range, TextDocumentIdentifier, WorkspaceEdit } from "vscode-languageserver-types"
+import { Diagnostic, DocumentUri, Range, TextDocumentIdentifier, WorkspaceEdit } from "vscode-languageserver-types"
 
 export interface SerializationPayload {
     documentIdentifier: TextDocumentIdentifier
@@ -17,6 +17,10 @@ export interface ConversionPayload {
 
 export interface FileUsagePayload {
     uri: DocumentUri
+}
+
+export interface CleanDiagnosticTreePayload {
+    textDocument: TextDocumentIdentifier
 }
 
 export const enum ConversionFormats {
@@ -46,14 +50,21 @@ export interface ConversionResponse {
     content: string
 }
 
-interface FileUsageResponse {
+export interface FileUsageResponse {
     uri: DocumentUri,
     range: Range
+}
+
+export interface CleanDiagnosticTreeResponse {
+    uri: DocumentUri,
+    diagnostics: Diagnostic[],
+    profile: string
 }
 
 export const enum RequestMethod {
     Serialization = 'serialization',
     RenameFile = 'renameFile',
     Conversion = 'conversion',
-    FileUsage = 'fileUsage'
+    FileUsage = 'fileUsage',
+    CleanDiagnosticTree = 'cleanDiagnosticTree'
 }

@@ -1,5 +1,6 @@
 import * as path from 'path'
-import { Disposable, DocumentFilter, languages, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
+import { commands, Disposable, DocumentFilter, languages, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
+import { DocumentUri } from 'vscode-languageclient/node'
 import { ExtensionCommands, SUPPORTED_EXTENSIONS } from "../extension"
 import { ApiFormat, readApiType } from "./api-search"
 import { FileFormatStatusBar, MainFileStatusBar } from './status-bar'
@@ -9,17 +10,19 @@ export class ApiDocumentController extends Disposable {
     private mainFileStatusBar: MainFileStatusBar
     private documentFilter: DocumentFilter[]
     private disposables: Disposable[] = []
-    private extensions: string[]
+    // TODO: Ugly way to workaround client request. Needs refactor.
+    private getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>
     public filename: string | undefined
+    public fileUsage: DocumentUri[] = []
 
-    constructor(documentFilter: DocumentFilter[]) {
+    constructor(documentFilter: DocumentFilter[], getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>) {
         super(() => { this.dispose() })
         this.documentFilter = documentFilter
         this.fileFormatStatusBar = new FileFormatStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 2), ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
         this.disposables.push(this.fileFormatStatusBar)
         this.mainFileStatusBar = new MainFileStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 1), ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.')
         this.disposables.push(this.mainFileStatusBar)
-        this.extensions = SUPPORTED_EXTENSIONS
+        this.getFileUsage = getFileUsage
 
         this.registerEvents()
         this.init()
@@ -47,16 +50,23 @@ export class ApiDocumentController extends Disposable {
 
     private async changeDocumentLanguage(document: TextDocument, apiFormat: ApiFormat | undefined): Promise<TextDocument> {
         if (!apiFormat) {
+            commands.executeCommand('setContext', 'ac.isApiFile', false)
             let ext = path.extname(document.fileName)
             if (ext === '.yml') {
                 ext = '.yaml'
             }
+            if (this.fileUsage.length && ['.json', '.yaml'].includes(ext)) {
+                return languages.setTextDocumentLanguage(document, `${ext.slice(1)}-api`)
+            }
             if (['json-api', 'yaml-api', 'raml'].includes(document.languageId)) {
                 return languages.setTextDocumentLanguage(document, ext.slice(1))
             }
-            return document
+        } else if (apiFormat.languageId !== document.languageId) {
+            commands.executeCommand('setContext', 'ac.isApiFile', true)
+            return languages.setTextDocumentLanguage(document, `${apiFormat.languageId}`)
         }
-        return languages.setTextDocumentLanguage(document, `${apiFormat.languageId}`)
+        commands.executeCommand('setContext', 'ac.isApiFile', true)
+        return document
     }
 
     async readApiFileFormat(document: TextDocument): Promise<ApiFormat | undefined> {
@@ -86,16 +96,19 @@ export class ApiDocumentController extends Disposable {
     private registerEvents() {
         this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
             const document = editor?.document
-            if (document && this.extensions.includes(path.extname(document.fileName))) {
-                await this.handleApiDocument(document)
-                return
+            if (document) {
+                this.fileUsage = await this.getFileUsage(document)
+                if (SUPPORTED_EXTENSIONS.includes(path.extname(document.fileName))) {
+                    await this.handleApiDocument(document)
+                    return
+                }
             }
             this.mainFileStatusBar.hide()
             this.fileFormatStatusBar.hide()
         }))
         this.disposables.push(workspace.onDidSaveTextDocument(async (document) => {
             const activeDocument = window.activeTextEditor?.document
-            if (activeDocument && this.extensions.includes(path.extname(activeDocument.fileName)) && activeDocument.fileName === document.fileName) {
+            if (activeDocument && SUPPORTED_EXTENSIONS.includes(path.extname(activeDocument.fileName)) && activeDocument.fileName === document.fileName) {
                 await this.handleApiDocument(activeDocument)
             }
         }))

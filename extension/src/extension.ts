@@ -7,11 +7,11 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
-import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable } from 'vscode'
+import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
-import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction } from 'vscode-languageclient/node'
+import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
-import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse } from './server-types'
+import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
 import { ChildProcessWithoutNullStreams } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
@@ -93,6 +93,16 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
             workspace.saveAll(false)
         }
     }
+}
+
+async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
+    if (!clientState) {
+        return []
+    }
+    const uri =  client.code2ProtocolConverter.asUri(document.uri)
+    const payload: FileUsagePayload = { uri }
+    const data: FileUsageResponse[] = await client.sendRequest(RequestMethod.FileUsage, payload)
+    return data.map((location) => {return location.uri})
 }
 
 async function checkMainApiFile(workspaceRoot: string, disableAutodetect = false) {
@@ -312,26 +322,21 @@ export async function activate(ctx: ExtensionContext) {
             panel.webview.postMessage({content: data.content})
         }
 
-        let fileUsage: string[] = []
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         let documentWatcher = new Disposable(() => {})
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        let fileUsageWatcher = new Disposable(() => {})
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
-                if (textDocument.fileName === document.fileName || fileUsage.includes(uri)) {
+                // If current file is referenced, revalidate it manually in order to update the content on the language server
+                if (apiDocumentController.fileUsage.length) {
+                    const payload: CleanDiagnosticTreePayload = {textDocument: {uri: client.code2ProtocolConverter.asUri(textDocument.uri)}}
+                    await client.sendRequest(RequestMethod.CleanDiagnosticTree, payload)
+                }
+                // Opened API file doesn't include itself in the fileUsage list.
+                // Check whether the saved file is the opened file or if it's a referenced file and rebuild model for the opened file.
+                if (textDocument.fileName === document.fileName || apiDocumentController.fileUsage.length) {
                     panel.webview.postMessage({reload: true})
                     await sendSerializedDocument()
-                }
-            })
-            fileUsageWatcher = window.onDidChangeActiveTextEditor(async (editor) => {
-                const document = editor?.document
-                if (document && SUPPORTED_EXTENSIONS.includes(path.extname(document.fileName))) {
-                    const uri =  client.code2ProtocolConverter.asUri(document.uri)
-                    const payload: FileUsagePayload = { uri }
-                    const data: Array<FileUsageResponse> = await client.sendRequest(RequestMethod.FileUsage, payload)
-                    fileUsage = data.map((location) => {return location.uri})
                 }
             })
         }
@@ -345,7 +350,6 @@ export async function activate(ctx: ExtensionContext) {
         panel.onDidDispose(() => {
             apicProxy.stop()
             documentWatcher.dispose()
-            fileUsageWatcher.dispose()
         }, undefined, ctx.subscriptions)
 
         const vendorJs = path.join(ctx.extensionPath, 'assets', 'api-console', 'vendor.js')
@@ -404,7 +408,7 @@ export async function activate(ctx: ExtensionContext) {
         </html>`
     }))
 
-    apiDocumentController = new ApiDocumentController(documentSelector)
+    apiDocumentController = new ApiDocumentController(documentSelector, getFileUsage)
     ctx.subscriptions.push(apiDocumentController)
 
     await readMainApiFile(workspace.rootPath)

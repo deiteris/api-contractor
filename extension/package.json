@@ -46,6 +46,9 @@
                     "RAML",
                     "raml"
                 ],
+                "extensions": [
+                    ".raml"
+                ],
                 "configuration": "./language-configs/yaml.json"
             },
             {
@@ -171,7 +174,7 @@
         "menus": {
             "editor/title": [
                 {
-                    "when": "editorLangId in ac.documentSelector",
+                    "when": "editorLangId in ac.documentSelector && ac.isApiFile",
                     "command": "ac.management.preview",
                     "group": "navigation"
                 }
@@ -179,15 +182,15 @@
             "commandPalette": [
                 {
                     "command": "ac.management.preview",
-                    "when": "editorLangId in ac.documentSelector"
+                    "when": "editorLangId in ac.documentSelector && ac.isApiFile"
                 },
                 {
                     "command": "ac.convert",
-                    "when": "editorLangId in ac.documentSelector"
+                    "when": "editorLangId in ac.documentSelector && ac.isApiFile"
                 },
                 {
                     "command": "ac.set.currentAsMainFile",
-                    "when": "editorLangId in ac.documentSelector"
+                    "when": "editorLangId in ac.documentSelector && ac.isApiFile"
                 }
             ]
         }
