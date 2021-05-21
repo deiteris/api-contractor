@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.2
+
+### Improvements and fixes
+
+Detection of the API files is improved. This improvement fixes the following issues:
+
+* RAML files are correctly highlighted in source control diff editor.
+
+* When the root API file is set, external json schemas will have reference links provided.
+
+* When the automatic reload of API preview is enabled and the root API file is set, non-API files that are referenced in the API files will also trigger automatic reload on save.
+
 ## 1.4.1
 
 ### API preview improvements
