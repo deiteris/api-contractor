@@ -321,6 +321,9 @@ export async function activate(ctx: ExtensionContext) {
         let documentWatcher = new Disposable(() => {})
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
+                if (!isClientReady) {
+                    return
+                }
                 // If current file is referenced, revalidate it manually in order to update the content on the language server
                 if (apiDocumentController.fileUsage.length) {
                     const payload: CleanDiagnosticTreePayload = {textDocument: {uri: client.code2ProtocolConverter.asUri(textDocument.uri)}}
