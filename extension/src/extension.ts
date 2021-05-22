@@ -7,7 +7,7 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
-import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument } from 'vscode'
+import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
@@ -25,7 +25,7 @@ export const enum ExtensionCommands {
     Convert = 'ac.convert'
 }
 export const SUPPORTED_EXTENSIONS = ['.raml', '.yaml', '.yml', '.json']
-const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
+export const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
 
 let client: LanguageClient
 let isClientReady: boolean
@@ -47,7 +47,6 @@ async function openMainApiSelection(workspaceRoot: string) {
     const fileUri = await window.showOpenDialog(options)
     if (fileUri && fileUri[0]) {
         await writeMainApiFile(workspaceRoot, fileUri[0].fsPath)
-        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
         return
     }
 }
@@ -63,7 +62,7 @@ async function writeMainApiFile(workspaceRoot: string, filePath: string) {
     }
     const configPath = path.join(workspaceRoot, configFile)
     await fs.writeJSON(configPath, { main })
-    apiDocumentController.updateFilename(main)
+    apiDocumentController.updateMainFile(main)
 }
 
 async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
@@ -105,13 +104,13 @@ async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
     return data.map((location) => {return location.uri})
 }
 
-async function checkMainApiFile(workspaceRoot: string, disableAutodetect = false) {
+async function checkMainApiFile(workspaceRoot: string) {
     const candidates = await findApiFiles(workspaceRoot)
     if (!candidates.length) {
         return
     }
     const autoDetectRootApi = workspace.getConfiguration('apiContractor').get('autoDetectRootApi')
-    if (autoDetectRootApi && !disableAutodetect) {
+    if (autoDetectRootApi) {
         if (candidates.length > 1) {
             window.showInformationMessage('There are multiple root API files in the workspace root. Please select a root API file manually.', 'Select file').then(async (selection) => {
                 if (selection) {
@@ -135,7 +134,7 @@ async function checkMainApiFile(workspaceRoot: string, disableAutodetect = false
     }
 }
 
-async function readMainApiFile(workspaceRoot: string | undefined, disableAutodetect = false) {
+async function readMainApiFile(workspaceRoot: string | undefined) {
     if (!workspaceRoot) {
         return
     }
@@ -148,10 +147,10 @@ async function readMainApiFile(workspaceRoot: string | undefined, disableAutodet
             await fs.remove(configPath)
             throw Error
         }
-        apiDocumentController.updateFilename(data.main)
+        apiDocumentController.updateMainFile(data.main)
     } catch {
-        apiDocumentController.updateFilename(undefined)
-        await checkMainApiFile(workspaceRoot, disableAutodetect)
+        apiDocumentController.updateMainFile(undefined)
+        await checkMainApiFile(workspaceRoot)
     }
 }
 
@@ -447,16 +446,36 @@ export async function activate(ctx: ExtensionContext) {
             await revalidate()
         }))
 
-        ctx.subscriptions.push(workspace.onDidDeleteFiles(async (e) => {
-            for (const file of e.files) {
-                if (path.basename(file.fsPath) === configFile || path.basename(file.fsPath) === apiDocumentController.filename) {
-                    await readMainApiFile(workspace.rootPath, true)
-                    commands.executeCommand(ExtensionCommands.RestartLanguageServer)
-                }
-            }
-
+        ctx.subscriptions.push(workspace.onDidDeleteFiles(async () => {
             await revalidate()
         }))
+
+        if (workspace.rootPath) {
+            const configWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath, configFile), false, false, false)
+            configWatcher.onDidCreate(async (e) => {
+                try {
+                    const data = await fs.readJSON(e.fsPath)
+                    apiDocumentController.updateMainFile(data.main)
+                } catch {
+                    apiDocumentController.updateMainFile(undefined)
+                }
+                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            })
+            configWatcher.onDidChange(async (e) => {
+                try {
+                    const data = await fs.readJSON(e.fsPath)
+                    apiDocumentController.updateMainFile(data.main)
+                } catch {
+                    apiDocumentController.updateMainFile(undefined)
+                }
+                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            })
+            configWatcher.onDidDelete(() => {
+                apiDocumentController.updateMainFile(undefined)
+                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            })
+            ctx.subscriptions.push(configWatcher)
+        }
     })
 
     async function revalidate() {

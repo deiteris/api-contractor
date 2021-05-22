@@ -1,7 +1,8 @@
 import * as path from 'path'
-import { commands, Disposable, DocumentFilter, languages, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
+import * as fs from 'fs-extra'
+import { commands, Disposable, DocumentFilter, FileSystemWatcher, languages, RelativePattern, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
 import { DocumentUri } from 'vscode-languageclient/node'
-import { ExtensionCommands, SUPPORTED_EXTENSIONS } from "../extension"
+import { ExtensionCommands, SUPPORTED_EXTENSIONS, configFile } from "../extension"
 import { ApiFormat, readApiType } from "./api-search"
 import { FileFormatStatusBar, MainFileStatusBar } from './status-bar'
 
@@ -12,7 +13,8 @@ export class ApiDocumentController extends Disposable {
     private disposables: Disposable[] = []
     // TODO: Ugly way to workaround client request. Needs refactor.
     private getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>
-    public filename: string | undefined
+    private mainFileWatcher: FileSystemWatcher | undefined
+    public mainFile: string | undefined
     public fileUsage: DocumentUri[] = []
 
     constructor(documentFilter: DocumentFilter[], getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>) {
@@ -43,9 +45,19 @@ export class ApiDocumentController extends Disposable {
         this.changeApiFormat(apiFormat)
     }
 
-    updateFilename(filename: string | undefined) {
-        this.filename = filename
-        this.mainFileStatusBar.updateText(this.filename)
+    updateMainFile(filename: string | undefined) {
+        if (this.mainFileWatcher) {
+            this.mainFileWatcher.dispose()
+        }
+        if (filename) {
+            this.mainFileWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath!, filename), true, true, false)
+            this.mainFileWatcher.onDidDelete(async () => {
+                const configPath = path.join(workspace.rootPath!, configFile)
+                await fs.remove(configPath)
+            })
+        }
+        this.mainFile = filename
+        this.mainFileStatusBar.updateText(this.mainFile)
     }
 
     private async changeDocumentLanguage(document: TextDocument, apiFormat: ApiFormat | undefined): Promise<TextDocument> {
