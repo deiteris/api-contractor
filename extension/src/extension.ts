@@ -9,7 +9,7 @@ import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
 import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
-import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri } from 'vscode-languageclient/node'
+import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State } from 'vscode-languageclient/node'
 import { checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
@@ -28,7 +28,7 @@ export const SUPPORTED_EXTENSIONS = ['.raml', '.yaml', '.yml', '.json']
 const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
 
 let client: LanguageClient
-let clientState: boolean
+let isClientReady: boolean
 let socket: Socket
 let process: ChildProcessWithoutNullStreams
 let apiDocumentController: ApiDocumentController
@@ -96,7 +96,7 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
 }
 
 async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
-    if (!clientState) {
+    if (!isClientReady) {
         return []
     }
     const uri =  client.code2ProtocolConverter.asUri(document.uri)
@@ -232,7 +232,7 @@ export async function activate(ctx: ExtensionContext) {
     }
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, async () => {
-        if (!clientState) {
+        if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try setting the root API file again in a few seconds.')
             return
         }
@@ -244,7 +244,7 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.SetCurrentAsMainApiFile, async (textEditor) => {
-        if (!clientState) {
+        if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try setting the root API file again in a few seconds.')
             return
         }
@@ -254,11 +254,10 @@ export async function activate(ctx: ExtensionContext) {
         }
         const document = textEditor.document
         await writeMainApiFile(workspaceRoot, document.fileName)
-        commands.executeCommand(ExtensionCommands.RestartLanguageServer)
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.Convert, async (textEditor) => {
-        if (!clientState) {
+        if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try converting again in a few seconds.')
             return
         }
@@ -285,21 +284,17 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, () => {
-        if (!clientState) {
+        if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try restarting again in a few seconds.')
             return
         }
-        clientState = false
         client.diagnostics?.clear()
         socket.emit('close')
         process.kill()
-        client.onReady().then(() => {
-            clientState = true
-        })
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.PreviewApiFile, async (textEditor) => {
-        if (!clientState) {
+        if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try previewing again in a few seconds.')
             return
         }
@@ -424,9 +419,15 @@ export async function activate(ctx: ExtensionContext) {
     // Start the client. This will also launch the server
     ctx.subscriptions.push(client.start())
 
-    client.onReady().then(async () => {
-        clientState = true
+    ctx.subscriptions.push(client.onDidChangeState(e => {
+        if (e.newState === State.Running) {
+            isClientReady = true
+        } else {
+            isClientReady = false
+        }
+    }))
 
+    client.onReady().then(async () => {
         ctx.subscriptions.push(workspace.onDidSaveTextDocument(async () => {
             // TODO: Apparently the "textDocument/didSave" method has dummy implementation,
             // https://github.com/aml-org/als/blob/develop/als-server/jvm/src/main/scala/org/mulesoft/als/server/lsp4j/TextDocumentServiceImpl.scala#L88
