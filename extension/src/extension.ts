@@ -460,6 +460,9 @@ export async function activate(ctx: ExtensionContext) {
     })
 
     async function revalidate() {
+        if (!isClientReady) {
+            return
+        }
         for (const file of workspace.textDocuments) {
             if (file.uri.scheme !== 'file' || !documentSelector.some(selector => selector.language === file.languageId)) {
                 return
