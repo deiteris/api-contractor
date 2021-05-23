@@ -36,7 +36,13 @@
     "rollup-plugin-terser": "^7.0.2",
     "uglify-js": "^3.13.7"
   },
+  "resolutions": {
+    "postcss": "^8.3.0",
+    "underscore": "^1.13.1",
+    "node-fetch": "^2.6.1"
+  },
   "scripts": {
+    "postinstall": "node tasks/fix-package-lock.js",
     "start": "node demo/index.js",
     "lint:eslint": "eslint --ext .js,.html . --ignore-path .gitignore",
     "format:eslint": "eslint --ext .js,.html . --fix --ignore-path .gitignore",
