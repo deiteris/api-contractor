@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.3
+
+## Fixes
+
+* In cases when the language server is unable to restart, the main API file status bar will show correct main API file that is currently used by the language server.
+
+* When `exchange.json` is modified outside the editor or workspace and the main API file is deleted outside the editor or workspace, the language server will be restarted and the main API file status bar will be updated accordingly.
+
+* Handle possible "language server is not ready" error on document save when the language server is not ready yet.
+
 ## 1.4.2
 
 ### Improvements and fixes
