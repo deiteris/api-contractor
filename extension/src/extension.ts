@@ -444,8 +444,8 @@ export async function activate(ctx: ExtensionContext) {
         }))
 
         ctx.subscriptions.push(workspace.onDidRenameFiles(async (e) => {
-            const autoDetectRootApi = workspace.getConfiguration('apiContractor').get('autoRenameRefs')
-            switch (autoDetectRootApi) {
+            const autoRenameRefsOpt = workspace.getConfiguration('apiContractor').get('autoRenameRefs')
+            switch (autoRenameRefsOpt) {
                 case 'never':
                     break
                 case 'always':
