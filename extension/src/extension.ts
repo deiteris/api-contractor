@@ -98,10 +98,10 @@ async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
     if (!isClientReady) {
         return []
     }
-    const uri =  client.code2ProtocolConverter.asUri(document.uri)
+    const uri = client.code2ProtocolConverter.asUri(document.uri)
     const payload: FileUsagePayload = { uri }
     const data: FileUsageResponse[] = await client.sendRequest(RequestMethod.FileUsage, payload)
-    return data.map((location) => {return location.uri})
+    return data.map((location) => { return location.uri })
 }
 
 async function checkMainApiFile(workspaceRoot: string) {
@@ -134,10 +134,7 @@ async function checkMainApiFile(workspaceRoot: string) {
     }
 }
 
-async function readMainApiFile(workspaceRoot: string | undefined) {
-    if (!workspaceRoot) {
-        return
-    }
+async function readMainApiFile(workspaceRoot: string): Promise<boolean> {
     try {
         const configPath = path.join(workspaceRoot, configFile)
         const data = await fs.readJSON(configPath)
@@ -148,9 +145,10 @@ async function readMainApiFile(workspaceRoot: string | undefined) {
             throw Error
         }
         apiDocumentController.updateMainFile(data.main)
+        return true
     } catch {
         apiDocumentController.updateMainFile(undefined)
-        await checkMainApiFile(workspaceRoot)
+        return false
     }
 }
 
@@ -282,10 +280,14 @@ export async function activate(ctx: ExtensionContext) {
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
-    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, () => {
+    ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, async () => {
+        // TODO: Must select or receive a workspace folder from a parameter to restart the language server
         if (!isClientReady) {
             window.showErrorMessage('Language server is not ready yet. Try restarting again in a few seconds.')
             return
+        }
+        if (workspace.rootPath) {
+            await readMainApiFile(workspace.rootPath)
         }
         client.diagnostics?.clear()
         socket.emit('close')
@@ -313,12 +315,12 @@ export async function activate(ctx: ExtensionContext) {
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
             const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
-            panel.webview.postMessage({content: data.content})
+            panel.webview.postMessage({ content: data.content })
         }
 
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        let documentWatcher = new Disposable(() => {})
+        let documentWatcher = new Disposable(() => { })
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
                 if (!isClientReady) {
@@ -326,13 +328,13 @@ export async function activate(ctx: ExtensionContext) {
                 }
                 // If current file is referenced, revalidate it manually in order to update the content on the language server
                 if (apiDocumentController.fileUsage.length) {
-                    const payload: CleanDiagnosticTreePayload = {textDocument: {uri: client.code2ProtocolConverter.asUri(textDocument.uri)}}
+                    const payload: CleanDiagnosticTreePayload = { textDocument: { uri: client.code2ProtocolConverter.asUri(textDocument.uri) } }
                     await client.sendRequest(RequestMethod.CleanDiagnosticTree, payload)
                 }
                 // Opened API file doesn't include itself in the fileUsage list.
                 // Check whether the saved file is the opened file or if it's a referenced file and rebuild model for the opened file.
                 if (textDocument.fileName === document.fileName || apiDocumentController.fileUsage.length) {
-                    panel.webview.postMessage({reload: true})
+                    panel.webview.postMessage({ reload: true })
                     await sendSerializedDocument()
                 }
             })
@@ -408,7 +410,12 @@ export async function activate(ctx: ExtensionContext) {
     apiDocumentController = new ApiDocumentController(documentSelector, getFileUsage)
     ctx.subscriptions.push(apiDocumentController)
 
-    await readMainApiFile(workspace.rootPath)
+    if (workspace.rootPath) {
+        const res = await readMainApiFile(workspace.rootPath)
+        if (!res) {
+            await checkMainApiFile(workspace.rootPath)
+        }
+    }
 
     // Create the language client and start the client.
     client = new LanguageClient(
@@ -455,26 +462,13 @@ export async function activate(ctx: ExtensionContext) {
 
         if (workspace.rootPath) {
             const configWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath, configFile), false, false, false)
-            configWatcher.onDidCreate(async (e) => {
-                try {
-                    const data = await fs.readJSON(e.fsPath)
-                    apiDocumentController.updateMainFile(data.main)
-                } catch {
-                    apiDocumentController.updateMainFile(undefined)
-                }
+            configWatcher.onDidCreate(() => {
                 commands.executeCommand(ExtensionCommands.RestartLanguageServer)
             })
-            configWatcher.onDidChange(async (e) => {
-                try {
-                    const data = await fs.readJSON(e.fsPath)
-                    apiDocumentController.updateMainFile(data.main)
-                } catch {
-                    apiDocumentController.updateMainFile(undefined)
-                }
+            configWatcher.onDidChange(() => {
                 commands.executeCommand(ExtensionCommands.RestartLanguageServer)
             })
             configWatcher.onDidDelete(() => {
-                apiDocumentController.updateMainFile(undefined)
                 commands.executeCommand(ExtensionCommands.RestartLanguageServer)
             })
             ctx.subscriptions.push(configWatcher)
