@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.4
+
+### Security
+
+Update API console packages to fix vulnerabilities.
+
 ## 1.4.3
 
 ## Fixes
