@@ -6,7 +6,7 @@ Based on https://github.com/mulesoft/api-console
 
 ### Before you start
 
-1. Run `npm i` to install all dependencies.
+1. Run `yarn install` to install all dependencies.
 
 1. Run `npm run build:vendor` to build `vendor.js`. The file will appear in the root folder.
 
