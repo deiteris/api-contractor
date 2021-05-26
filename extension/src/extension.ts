@@ -87,7 +87,7 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
                 we.replace(uri, new Range(startPos, endPos), edit.newText)
             }
         }
-        const res = workspace.applyEdit(we)
+        const res = await workspace.applyEdit(we)
         if (res) {
             workspace.saveAll(false)
         }
