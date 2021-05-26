@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.5
+
+## Fixes
+
+* When the root API file is set and a referenced file is renamed with automatic references rename enabled, the updated files will be always saved correctly.
+
+## API preview improvements
+
+* Applied styles to the "switch" element.
+
+### Updates
+
+* The API Console updated to [6.4.11](https://github.com/mulesoft/api-console/releases/tag/6.4.11).
+
+* Extension and API Console packages updated.
+
 ## 1.4.4
 
 ### Security
