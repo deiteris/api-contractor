@@ -84,6 +84,9 @@ html {
     --anypoint-input-input-color: var(--vscode-input-foreground);
     --anypoint-input-info-message-color: var(--vscode-editorInfo-foreground);
     --anypoint-input-label-color: var(--vscode-input-placeholderForeground);
+    --anypoint-switch-color: var(--vscode-settings-checkboxBackground);
+    --anypoint-switch-button-color: var(--vscode-settings-checkboxForeground);
+    --anypoint-switch-active-color: var(--accent-color);
     --anypoint-dropdown-menu-background-color: var(--vscode-input-background);
     --anypoint-dropdown-menu-label-color: var(--vscode-input-placeholderForeground);
     --anypoint-dropdown-menu-trigger-icon-active-color: var(--vscode-icon-foreground);
