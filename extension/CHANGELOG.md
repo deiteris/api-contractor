@@ -1,12 +1,22 @@
 # Changelog
 
+## 1.4.6
+
+### New
+
+Added basic API snippets with RAML templates.
+
+### Updates
+
+AML Language Server updated to [3.2.8](https://github.com/aml-org/als/releases/tag/v3.2.8).
+
 ## 1.4.5
 
-## Fixes
+### Fixes
 
 * When the root API file is set and a referenced file is renamed with automatic references rename enabled, the updated files will be always saved correctly.
 
-## API preview improvements
+### API preview improvements
 
 * Applied styles to the "switch" element.
 
@@ -24,7 +34,7 @@ Update API console packages to fix vulnerabilities.
 
 ## 1.4.3
 
-## Fixes
+### Fixes
 
 * In cases when the language server is unable to restart, the main API file status bar will show correct main API file that is currently used by the language server.
 
