@@ -91,6 +91,12 @@
                 "path": "./syntaxes/yaml.tmLanguage.json"
             }
         ],
+        "snippets": [
+            {
+                "language": "raml",
+                "path": "./snippets/raml.json"
+            }
+        ],
         "configuration": {
             "title": "API Contractor",
             "properties": {

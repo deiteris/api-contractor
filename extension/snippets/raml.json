@@ -1,0 +1,389 @@
+{
+    "RAML 1.0": {
+        "prefix": [
+            "%RAML 1.0"
+        ],
+        "body": [
+            "#%RAML 1.0",
+            "",
+            "title: ${1:Example API}",
+            "version: ${2:v1}",
+            "baseUri: ${3:http}://example.com/api/{version}",
+            "protocols: [${3}]",
+            "mediaType: ${4|application/json,application/xml|}"
+        ],
+        "description": "A base of the main RAML 1.0 document."
+    },
+    "RAML 1.0 Library": {
+        "prefix": [
+            "%RAML 1.0 Library"
+        ],
+        "body": [
+            "#%RAML 1.0 Library",
+            "",
+            "usage: ${1:Instructions on how and when the library should be used.}",
+            "",
+            "types:",
+            "\t",
+            "traits:",
+            "\t",
+            "resourceTypes:",
+            "\t"
+        ],
+        "description": "A base of the RAML 1.0 Library fragment."
+    },
+    "RAML 1.0 DataType": {
+        "prefix": [
+            "%RAML 1.0 DataType"
+        ],
+        "body": [
+            "#%RAML 1.0 DataType",
+            "",
+            "type: ${1|string,integer,number,boolean,array,object,null,time-only,datetime,datetime-only,date-only,file|}",
+            "description: ${2:A description of the type.}",
+            ""
+        ],
+        "description": "A base of the RAML 1.0 DataType fragment."
+    },
+    "RAML 1.0 Extension": {
+        "prefix": [
+            "%RAML 1.0 Extension"
+        ],
+        "body": [
+            "#%RAML 1.0 Extension",
+            "",
+            "extends: ${1:api.raml}",
+            ""
+        ],
+        "description": "A base of the RAML 1.0 Extension fragment."
+    },
+    "RAML 1.0 Overlay": {
+        "prefix": [
+            "%RAML 1.0 Overlay"
+        ],
+        "body": [
+            "#%RAML 1.0 Overlay",
+            "",
+            "extends: ${1:api.raml}",
+            ""
+        ],
+        "description": "A base of the RAML 1.0 Overlay fragment."
+    },
+    "RAML 1.0 SecurityScheme": {
+        "prefix": [
+            "%RAML 1.0 SecurityScheme"
+        ],
+        "body": [
+            "#%RAML 1.0 SecurityScheme",
+            "",
+            "description: ${1:A description of the security scheme.}",
+            "type: ${2|Basic Authentication,Digest Authentication,OAuth 1.0,OAuth 2.0,Pass Through,x-|}",
+            "describedBy:",
+            "\tresponses:",
+            "\t\t401:",
+            "\t\t\tdescription: The request lacks valid authentication credentials for the target resource.",
+            "\t\t403:",
+            "\t\t\tdescription: The request to target resource is forbidden with provided authentication credentials.",
+            ""
+        ],
+        "description": "A base of the RAML 1.0 SecurityScheme fragment."
+    },
+    "RAML 1.0 Trait": {
+        "prefix": [
+            "%RAML 1.0 Trait"
+        ],
+        "body": [
+            "#%RAML 1.0 Trait",
+            "",
+            "usage: ${1:Instructions on how and when the trait should be used.}",
+            ""
+        ],
+        "description": "A base of the RAML 1.0 Trait fragment."
+    },
+    "String type definition": {
+        "prefix": [
+            "%string"
+        ],
+        "body": [
+            "string",
+            "pattern: ${1:^.+?$}",
+            "minLength: ${2:0}",
+            "maxLength: ${3:2147483647}"
+        ]
+    },
+    "Integer type definition": {
+        "prefix": [
+            "%integer"
+        ],
+        "body": [
+            "integer",
+            "minimum: ${1:-2147483647}",
+            "maximum: ${2:2147483647}",
+            "format: ${3|int8,int16,int32,int64,long,float,double|}"
+        ]
+    },
+    "Array type definition": {
+        "prefix": [
+            "%array"
+        ],
+        "body": [
+            "array",
+            "minItems: ${1:0}",
+            "maxItems: ${2:2147483647}",
+            "uniqueItems: ${2|false,true|}",
+            "items:",
+            "\ttype: ${3|string,integer,number,boolean,array,object,null,time-only,datetime,datetime-only,date-only,file|}"
+        ]
+    },
+    "Object type definition": {
+        "prefix": [
+            "%object"
+        ],
+        "body": [
+            "object",
+            "additionalProperties: ${1|true,false|}",
+            "minProperties: ${2:0}",
+            "maxProperties: ${3:2147483647}",
+            "properties:",
+            "\t"
+        ]
+    },
+    "File type definition": {
+        "prefix": [
+            "%file"
+        ],
+        "body": [
+            "file",
+            "fileTypes: ${1:['*/*']}",
+            "minLength: ${2:0}",
+            "maxLength: ${3:2147483647}"
+        ]
+    },
+    "Date-only type definition": {
+        "prefix": [
+            "%date-only"
+        ],
+        "body": [
+            "date-only",
+            "example: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}"
+        ]
+    },
+    "Time-only type definition": {
+        "prefix": [
+            "%time-only"
+        ],
+        "body": [
+            "time-only",
+            "example: ${CURRENT_HOUR}:${CURRENT_MINUTE}:${CURRENT_SECOND}"
+        ]
+    },
+    "Datetime-only type definition": {
+        "prefix": [
+            "%datetime-only"
+        ],
+        "body": [
+            "datetime-only",
+            "example: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}T${CURRENT_HOUR}:${CURRENT_MINUTE}:${CURRENT_SECOND}"
+        ]
+    },
+    "RFC3339 datetime type definition": {
+        "prefix": [
+            "%datetime"
+        ],
+        "body": [
+            "datetime",
+            "format: rfc3339",
+            "example: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}T${CURRENT_HOUR}:${CURRENT_MINUTE}:${CURRENT_SECOND}.000Z"
+        ]
+    },
+    "RFC2616 datetime type definition": {
+        "prefix": [
+            "%datetime:rfc2616"
+        ],
+        "body": [
+            "datetime",
+            "format: rfc2616",
+            "example: ${CURRENT_DAY_NAME_SHORT}, ${CURRENT_DATE} ${CURRENT_MONTH_NAME_SHORT} ${CURRENT_YEAR} ${CURRENT_HOUR}:${CURRENT_MINUTE}:${CURRENT_SECOND} GMT"
+        ]
+    },
+    "Basic endpoint": {
+        "prefix": [
+            "%endpoint:basic"
+        ],
+        "body": [
+            "/${1:pets}:",
+            "\t${2|get,post,put,delete,patch|}:",
+            "\t\tdisplayName: ${3:Do something with pets}",
+            "\t\tdescription: ${4:Does something with pets in the pet store.}",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource."
+        ]
+    },
+    "Basic endpoint w/ template parameter": {
+        "prefix": [
+            "%endpoint:template"
+        ],
+        "body": [
+            "/{${1:pet_id}}:",
+            "\turiParameters:",
+            "\t\t${1:pet_id}:",
+            "\t\t\ttype: ${2|string,integer,array|}",
+            "\t\t\tdescription: ${3:The ID of the pet}.",
+            "",
+            "\t${4|get,post,put,delete,patch|}:",
+            "\t\tdisplayName: ${5:Do something with a pet}",
+            "\t\tdescription: ${6:Does something with a pet in the pet store.}",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource."
+        ]
+    },
+    "CRUD endpoint": {
+        "prefix": [
+            "%endpoint:crud"
+        ],
+        "body": [
+            "/${1:pets}:",
+            "\tget:",
+            "\t\tdisplayName: Fetch a list of ${2:pets}",
+            "\t\tdescription: Fetches a list of ${2:pets} ${3:in the pet store}.",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource.",
+            "\tpost:",
+            "\t\tdisplayName: Create a new ${4:pet}",
+            "\t\tdescription: Creates a new ${4:pet} ${5:in the pet store}.",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful and the server respond with the data.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource."
+        ]
+    },
+    "CRUD endpoint w/ template parameter": {
+        "prefix": [
+            "%endpoint:crud-template"
+        ],
+        "body": [
+            "/{${1:pet_id}}:",
+            "\turiParameters:",
+            "\t\t${1:pet_id}:",
+            "\t\t\ttype: ${2|string,integer,array|}",
+            "\t\t\tdescription: ${3:The ID of the pet}.",
+            "",
+            "\tget:",
+            "\t\tdisplayName: Fetch a ${4:pet}",
+            "\t\tdescription: Fetches a ${4:pet} ${5:from the pet store}.",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource.",
+            "\tput:",
+            "\t\tdisplayName: Update a ${4:pet}",
+            "\t\tdescription: Updates a ${4:pet} ${6:in the pet store}.",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t200:",
+            "\t\t\t\tdescription: The request was successful.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource.",
+            "\tdelete:",
+            "\t\tdisplayName: Delete a ${4:pet}",
+            "\t\tdescription: Deletes a ${4:pet} ${7:from the pet store}.",
+            "\t\t",
+            "\t\tbody:",
+            "\t\t\ttype: object",
+            "\t\t\texample: {}",
+            "\t\tresponses:",
+            "\t\t\t204:",
+            "\t\t\t\tdescription: The request was successful and the server respond with no content.",
+            "\t\t\t404:",
+            "\t\t\t\tdescription: The server could not find the requested resource."
+        ]
+    },
+    "Code 400 template": {
+        "prefix": [
+            "%400:"
+        ],
+        "body": [
+            "400:",
+            "\tdescription: The server cannot or will not process the request due to a client error."
+        ]
+    },
+    "Code 401 template": {
+        "prefix": [
+            "%401:"
+        ],
+        "body": [
+            "401:",
+            "\tdescription: The request lacks valid authentication credentials for the target resource."
+        ]
+    },
+    "Code 404 template": {
+        "prefix": [
+            "%404:"
+        ],
+        "body": [
+            "404:",
+            "\tdescription: The server could not find the requested resource."
+        ]
+    },
+    "Code 405 template": {
+        "prefix": [
+            "%405:"
+        ],
+        "body": [
+            "405:",
+            "\tdescription: The request method is not supported by the target resource."
+        ]
+    },
+    "Code 415 template": {
+        "prefix": [
+            "%415:"
+        ],
+        "body": [
+            "415:",
+            "\tdescription: The server refuses to accept the request because the payload format is in an unsupported format."
+        ]
+    },
+    "Code 500 template": {
+        "prefix": [
+            "%500:"
+        ],
+        "body": [
+            "500:",
+            "\tdescription: The server encountered an unexpected condition that prevented it from fulfilling the request."
+        ]
+    }
+}
