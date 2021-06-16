@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.7
+
+### Fixes
+
+Fix origin restriction of HTTP proxy server for API requests to fix Try It functionality in VS Code versions `>=1.57` and `<=1.55`.
+
 ## 1.4.6
 
 ### New
