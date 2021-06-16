@@ -6,14 +6,12 @@ import { URL } from 'url'
 export class ApiConsoleProxy {
     private app: express.Express
     private httpServer: http.Server
-    private origin: string
     private httpPort: number | undefined
 
     constructor(origin: string) {
         this.app = express()
-        this.origin = origin
         this.httpServer = http.createServer(this.app)
-        this.init()
+        this.init(origin)
     }
 
     getTargetHost(req: express.Request) {
@@ -22,11 +20,11 @@ export class ApiConsoleProxy {
         return url.host
     }
 
-    setSecurity() {
+    setSecurity(origin: string) {
         this.app.use((req, res, next) => {
 
             // Website you wish to allow to connect
-            res.setHeader('Access-Control-Allow-Origin', this.origin)
+            res.setHeader('Access-Control-Allow-Origin', origin)
 
             // Request headers you wish to allow
             res.setHeader('Access-Control-Allow-Headers', '*')
@@ -84,8 +82,8 @@ export class ApiConsoleProxy {
         }))
     }
 
-    private init() {
-        this.setSecurity()
+    private init(origin: string) {
+        this.setSecurity(origin)
         this.setRoutes()
     }
 

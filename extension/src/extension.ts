@@ -340,9 +340,16 @@ export async function activate(ctx: ExtensionContext) {
             })
         }
 
+        let apicProxy: ApiConsoleProxy
         panel.webview.onDidReceiveMessage(async (event) => {
             if (event.ready === true) {
+                apicProxy = new ApiConsoleProxy(event.origin)
                 await sendSerializedDocument()
+                const httpPort = await apicProxy.run()
+                const webServerUri = (await env.asExternalUri(Uri.parse(`http://127.0.0.1:${httpPort}`))).toString()
+                panel.webview.postMessage({
+                    serverUri: webServerUri
+                })
             }
         }, undefined, ctx.subscriptions)
 
@@ -356,28 +363,20 @@ export async function activate(ctx: ExtensionContext) {
         const vendorJsUri = panel.webview.asWebviewUri(Uri.file(vendorJs))
         const apicBuildJsUri = panel.webview.asWebviewUri(Uri.file(apicJs))
 
-        let authority = vendorJsUri.authority
-        if (authority.indexOf('.') !== -1) {
-            authority = authority.slice(0, authority.indexOf('.'))
-        }
-        const origin = `vscode-webview://${authority}`
         const nonce = crypto.randomBytes(16).toString('base64')
-        const apicProxy = new ApiConsoleProxy(origin)
-        const httpPort = await apicProxy.run()
-        const webServerUri = await env.asExternalUri(Uri.parse(`http://127.0.0.1:${httpPort}`))
         panel.webview.html = `
         <!doctype html>
         <html lang="en">
             <head>
                 <meta charset="utf-8">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${panel.webview.cspSource} 'nonce-${nonce}'; style-src ${panel.webview.cspSource} 'unsafe-inline'; connect-src ${webServerUri}" />
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${panel.webview.cspSource} 'nonce-${nonce}'; style-src ${panel.webview.cspSource} 'unsafe-inline'; connect-src 'self' http: https:;" />
                 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
                 <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1,user-scalable=yes">
                 <title>API Console</title>
             </head>
             <body>
                 <script src="${vendorJsUri.toString()}"></script>
-                <api-console-app app rearrangeEndpoints allowCustom allowCustomBaseUri proxy="${webServerUri}proxy?url=" proxyEncodeUrl redirectUri="${webServerUri}oauth-callback"></api-console-app>
+                <api-console-app app rearrangeEndpoints allowCustom allowCustomBaseUri proxyEncodeUrl></api-console-app>
                 <div id="loader">
                     <div class="lds-dual-ring"></div>
                 </div>
@@ -385,21 +384,26 @@ export async function activate(ctx: ExtensionContext) {
                 <script nonce="${nonce}">
                     (function() {
                         window.addEventListener('message', function (e) {
+                            const apic = document.querySelector('api-console-app');
                             if (e.data.reload) {
                                 loader.style.display = 'flex';
                             }
                             if (e.data.content) {
-                                const apic = document.querySelector('api-console-app');
                                 const loader = document.querySelector('#loader');
                                 const model = JSON.parse(e.data.content);
                                 apic.amf = model;
                                 loader.style.display = 'none';
                             }
+                            if (e.data.serverUri) {
+                                apic.setAttribute('proxy', e.data.serverUri + "proxy?url=");
+                                apic.setAttribute('redirectUri', e.data.serverUri + "oauth-callback");
+                            }
                         });
 
                         const vscode = acquireVsCodeApi();
                         vscode.postMessage({
-                            ready: true
+                            ready: true,
+                            origin: window.location.origin
                         }, '*');
                     })();
                 </script>
