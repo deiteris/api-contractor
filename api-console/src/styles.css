@@ -91,6 +91,7 @@ html {
     --anypoint-dropdown-menu-label-color: var(--vscode-input-placeholderForeground);
     --anypoint-dropdown-menu-trigger-icon-active-color: var(--vscode-icon-foreground);
     --anypoint-dropdown-menu-hover-border-color: var(--accent-color);
+    --anypoint-autocomplete-background-color: var(--vscode-input-background);
     --anypoint-listbox-background-color: var(--vscode-input-background);
     --anypoint-item-hover-background-color: var(--vscode-inputOption-activeBackground);
     --anypoint-item-focused-background-color: var(--vscode-inputOption-activeBackground);
