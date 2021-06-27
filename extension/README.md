@@ -17,6 +17,8 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 * [Visual Studio Code 1.54 or newer](https://code.visualstudio.com/Download)
 * [Java 1.8 or newer](https://www.java.com/en/download/manual.jsp)
 
+If you are working with large APIs and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9).
+
 ## Available commands
 
 * `API Contractor: Restart language server` - Restarts the client and language server.
