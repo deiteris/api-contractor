@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.8
+
+### Updates
+
+* AML Language Server updated to [3.2.8-1](https://github.com/aml-org/als/releases/tag/v3.2.8-1).
+
+* The API Console updated to [6.5.0](https://github.com/mulesoft/api-console/releases/tag/6.5.0).
+
+### Fixes
+
+* Patch the API Console to fix appearance of `allOf` JSON schema definition properties.
+
+* When the automatic reload of API preview is enabled, the language server will no longer result in increased memory consumption or crash if the file is saved frequently.
+
+* Fix autocomplete background color in the API preview.
+
 ## 1.4.7
 
 ### Fixes
