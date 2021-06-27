@@ -321,9 +321,14 @@ export async function activate(ctx: ExtensionContext) {
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         let documentWatcher = new Disposable(() => { })
+        // TODO: Maybe this can be reworked with vscode CancellationToken but doesn't seem to work well.
+        let serializationInProgress = false
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
                 if (!isClientReady) {
+                    return
+                }
+                if (serializationInProgress) {
                     return
                 }
                 // If current file is referenced, revalidate it manually in order to update the content on the language server
@@ -334,8 +339,10 @@ export async function activate(ctx: ExtensionContext) {
                 // Opened API file doesn't include itself in the fileUsage list.
                 // Check whether the saved file is the opened file or if it's a referenced file and rebuild model for the opened file.
                 if (textDocument.fileName === document.fileName || apiDocumentController.fileUsage.length) {
+                    serializationInProgress = true
                     panel.webview.postMessage({ reload: true })
                     await sendSerializedDocument()
+                    serializationInProgress = false
                 }
             })
         }
@@ -344,7 +351,9 @@ export async function activate(ctx: ExtensionContext) {
         panel.webview.onDidReceiveMessage(async (event) => {
             if (event.ready === true) {
                 apicProxy = new ApiConsoleProxy(event.origin)
+                serializationInProgress = true
                 await sendSerializedDocument()
+                serializationInProgress = false
                 const httpPort = await apicProxy.run()
                 const webServerUri = (await env.asExternalUri(Uri.parse(`http://127.0.0.1:${httpPort}`))).toString()
                 panel.webview.postMessage({
