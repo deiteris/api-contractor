@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.9
+
+### Updates
+
+* AML Language Server updated to [3.2.9](https://github.com/aml-org/als/releases/tag/v3.2.9).
+
+### API preview improvements
+
+* Fixed colors for the "switch" element.
+
+* Navigation uses custom scrollbar with VSCode-themed colors.
+
+* Increased navigation width.
+
+### Fixes
+
+* Patch the API Console to fix OAuth 2.0 requests when authorization server's `token_type` is `bearer`, but the server expects `Bearer` in the `Authorization` header.
+
 ## 1.4.8
 
 ### Updates
