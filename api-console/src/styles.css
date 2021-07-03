@@ -96,6 +96,11 @@ html {
     --anypoint-item-hover-background-color: var(--vscode-inputOption-activeBackground);
     --anypoint-item-focused-background-color: var(--vscode-inputOption-activeBackground);
     --anypoint-item-before-opacity: 0;
+    --anypoint-checkbox-label-color: var(--primary-color);
+    --anypoint-checkbox-input-border-color: var(--vscode-settings-checkboxBackground);
+    --anypoint-checkbox-checked-color: var(--vscode-settings-checkboxBackground);
+    --anypoint-checkbox-checked-input-border-color: var(--vscode-settings-checkboxBackground);
+    --anypoint-checkbox-checkmark-color: var(--vscode-settings-checkboxForeground);
 
     --anypoint-icon-button-color: var(--vscode-icon-foreground);
     --anypoint-icon-button-emphasis-low-hover-background-color: var(--vscode-toolbar-hoverBackground, transparent);
