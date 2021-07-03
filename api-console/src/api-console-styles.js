@@ -27,4 +27,31 @@ app-header {
 .api-docs api-documentation {
   overflow: hidden;
 }
+
+/* Scrollbar customization (webkit and moz only) */
+/* Webkit-based browsers (Chrome 2+, Opera 15+, Safari 4+) */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-background);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--vscode-scrollbarSlider-activeBackground);
+}
 `;
