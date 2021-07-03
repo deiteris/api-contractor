@@ -199,6 +199,7 @@ html {
     --apic-app-header-border-color: var(--vscode-contrastBorder, transparent);
 
     /* --api-body-document-media-button-background-color: #2196F3; */
+    --app-drawer-width: 350px;
 }
 
 body {

@@ -13,6 +13,11 @@ app-drawer, .drawer-content-wrapper {
   padding: 12px 0px;
   border-top: 1px var(--apic-powered-by-border-color) solid;
   margin: 8px 12px 0 12px;
+  text-align: center;
+}
+
+a.attribution {
+  margin: 0;
 }
 
 app-header {
