@@ -5,7 +5,7 @@ export default css`
   overflow: auto;
 }
 
-app-drawer, .drawer-content-wrapper {
+.drawer-content-wrapper {
   border-right: 1px var(--apic-drawer-content-wrapper-border-color) solid;
 }
 
