@@ -1,5 +1,7 @@
 import { html } from 'lit-element';
+import attributionTpl from 'api-console/src/attribution-template.js';
 import { ApiConsoleApp } from 'api-console/src/ApiConsoleApp.js';
+import { search } from '@advanced-rest-client/arc-icons/ArcIcons.js';
 import styles from './api-console-styles.js';
 
 /* This class overrides ApiConsoleApp methods to customize existing API Console features */
@@ -12,6 +14,39 @@ class CustomApiConsoleApp extends ApiConsoleApp {
             /** @type CSSResult */ (ApiConsoleApp.styles),
             styles,
         ];
+    }
+
+    _filterNavigation(e) {
+        const nav = this.shadowRoot.querySelector('api-navigation');
+        nav.query = e.target.value;
+    }
+
+    /**
+     * @return {TemplateResult} The template for api navigation element
+     */
+     _navigationTemplate() {
+        const {
+            amf,
+            noAttribution,
+            rearrangeEndpoints
+        } = this;
+        return html `<div class="drawer-content-wrapper">
+            <anypoint-input style="margin: 0 0 5px 0; padding: 0 15px; width: 100%;" placeholder="Endpoint path or name" @input="${e => this._filterNavigation(e)}">
+                <label slot="label">Search</label>
+                <span slot="prefix" class="icon">${search}</span>
+            </anypoint-input>
+            <api-navigation
+                .amf="${amf}"
+                summary
+                endpointsOpened
+                ?rearrangeEndpoints="${rearrangeEndpoints}"
+                @api-navigation-selection-changed="${this._apiNavigationOcurred}"
+                ?operationsOpened="${this.operationsOpened}"
+                ?noOverview="${this.noOverview}"
+                ?renderFullPaths="${this.renderFullPaths}"
+            ></api-navigation>
+            ${noAttribution ? '' : attributionTpl}
+        </div>`;
     }
 
     /*
