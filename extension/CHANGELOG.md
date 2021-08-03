@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.10
+
+### Updates
+
+* AML Language Server updated to [3.2.10](https://github.com/aml-org/als/releases/tag/v3.2.10).
+
+* The API Console updated to [6.5.2](https://github.com/mulesoft/api-console/releases/tag/6.5.2).
+
+### API preview improvements
+
+* Search has been added to the navigation menu.
+
+### Fixes
+
+* Patch the API Console to fix display of JSON the `allOf` property in RAML definitions.
+
+* Patch the API Console to fix display of array constraint properties.
+
+* Patch the API Console to fix display of the unique array items constraint in RAML definitions.
+
 ## 1.4.9
 
 ### Updates
