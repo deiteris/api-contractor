@@ -2,7 +2,7 @@ import { css } from 'lit-element';
 
 export default css`
 :host {
-  overflow: auto;
+  overflow: inherit;
 }
 
 .drawer-content-wrapper {
@@ -22,6 +22,10 @@ a.attribution {
 
 app-header {
   border-bottom: 1px var(--apic-app-header-border-color) solid;
+}
+
+app-header-layout {
+  z-index: 9000;
 }
 
 .api-docs api-documentation {

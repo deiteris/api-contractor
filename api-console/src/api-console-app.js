@@ -22,15 +22,44 @@ class CustomApiConsoleApp extends ApiConsoleApp {
     }
 
     /**
+     * @return {TemplateResult} Template for the main page content
+     */
+    _mainContentTemplate() {
+        const {
+            responsiveWidth,
+            layoutNarrow,
+            drawerAlign,
+            navigationOpened
+        } = this;
+        return html`
+        ${this._mediaQueriesTemplate()}
+        <app-drawer-layout
+            .responsiveWidth="${responsiveWidth}"
+            ?forceNarrow="${layoutNarrow}"
+            fullbleed>
+            <app-drawer slot="drawer" .align="${drawerAlign}" .opened="${navigationOpened}">
+                ${this._drawerToolbarTemplate()}
+                ${this._navigationTemplate()}
+            </app-drawer>
+            <app-header-layout>
+            ${this._contentToolbarTemplate()}
+            </app-header-layout>
+            <div class="main-content">
+                ${this._getPageTemplate()}
+            </div>
+        </app-drawer-layout>`;
+    }
+
+    /**
      * @return {TemplateResult} The template for api navigation element
      */
-     _navigationTemplate() {
+    _navigationTemplate() {
         const {
             amf,
             noAttribution,
             rearrangeEndpoints
         } = this;
-        return html `<div class="drawer-content-wrapper">
+        return html`<div class="drawer-content-wrapper">
             <anypoint-input style="margin: 0 0 5px 0; padding: 0 15px; width: 100%;" placeholder="Endpoint path or name" @input="${e => this._filterNavigation(e)}">
                 <label slot="label">Search</label>
                 <span slot="prefix" class="icon">${search}</span>
