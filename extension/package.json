@@ -215,18 +215,18 @@
         "@types/mocha": "^9.0.0",
         "@types/node": "^14.14.45",
         "@types/vscode": "^1.54.0",
-        "@typescript-eslint/eslint-plugin": "^4.29.0",
-        "@typescript-eslint/parser": "^4.29.0",
+        "@typescript-eslint/eslint-plugin": "^4.29.2",
+        "@typescript-eslint/parser": "^4.29.2",
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
         "mocha": "^9.0.3",
         "rimraf": "^3.0.2",
-        "ts-loader": "^9.2.4",
+        "ts-loader": "^9.2.5",
         "typescript": "^4.3.5",
         "vsce": "^1.96.1",
         "vscode-test": "^1.6.1",
-        "webpack": "^5.48.0",
-        "webpack-cli": "^4.7.2"
+        "webpack": "^5.50.0",
+        "webpack-cli": "^4.8.0"
     },
     "scripts": {
         "compile": "rimraf dist && tsc",
