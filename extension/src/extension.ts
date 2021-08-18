@@ -274,7 +274,7 @@ export async function activate(ctx: ExtensionContext) {
         const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        await fs.writeFile(filePath, data.content)
+        await fs.writeFile(filePath, data.model)
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
@@ -313,7 +313,7 @@ export async function activate(ctx: ExtensionContext) {
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
             const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
-            panel.webview.postMessage({ content: data.content })
+            panel.webview.postMessage({ content: data.model })
         }
 
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
