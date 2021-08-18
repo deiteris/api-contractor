@@ -125,11 +125,15 @@ html {
     --api-resource-example-document-button-active-color: var(--vscode-button-foreground);
 
     --api-body-document-media-button-border-color: transparent;
-    --api-type-document-media-button-border-color: transparent;
     --api-type-document-union-button-color: var(--vscode-button-secondaryForeground);
     --api-type-document-union-button-background-color: var(--vscode-button-secondaryBackground, transparent);
     --api-type-document-union-button-active-color: var(--vscode-button-secondaryForeground);
     --api-type-document-union-button-active-background-color: var(--vscode-button-hoverBackground, transparent);
+
+    --api-type-document-media-button-border-color: transparent;
+    --api-type-document-media-button-background-color:var(--vscode-button-secondaryBackground, transparent);
+    --api-type-document-media-button-active-background-color: var(--vscode-button-hoverBackground, transparent);
+    --api-type-document-media-button-color: var(--vscode-button-secondaryForeground);
 
     --api-type-document-type-attribute-color: var(--primary-color);
     --api-method-documentation-description-color: var(--primary-color);
