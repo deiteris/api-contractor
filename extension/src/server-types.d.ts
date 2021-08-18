@@ -28,7 +28,8 @@ export const enum ConversionFormats {
     OAS30 = 'OAS 3.0',
     RAML08 = 'RAML 0.8',
     RAML10 = 'RAML 1.0',
-    ASYNC20 = 'ASYNC 2.0'
+    ASYNC20 = 'ASYNC 2.0',
+    AMF = 'AMF Graph'
 }
 
 export const enum ConversionSyntaxes {

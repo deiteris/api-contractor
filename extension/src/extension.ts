@@ -158,18 +158,13 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
         window.showErrorMessage('Conversion from RAML 0.8 is not supported.')
         return
     }
-    let formats
-    if (fromFormat.type === ConversionFormats.RAML10) {
-        formats = [
-            ConversionFormats.OAS20,
-            ConversionFormats.OAS30
-        ]
-    } else {
-        formats = [
-            ConversionFormats.OAS20,
-            ConversionFormats.OAS30,
-            ConversionFormats.RAML10
-        ]
+    const formats = [
+        ConversionFormats.OAS20,
+        ConversionFormats.OAS30,
+        ConversionFormats.AMF
+    ]
+    if (fromFormat.type !== ConversionFormats.RAML10) {
+        formats.push(ConversionFormats.RAML10)
     }
     return <ConversionFormats>await window.showQuickPick(formats, { placeHolder: 'Select conversion format' })
 }
@@ -177,6 +172,9 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
 async function showTargetSyntaxPick(fromFormat: ConversionFormats, fromSyntax: ConversionSyntaxes, toFormat: ConversionFormats): Promise<ConversionSyntaxes | undefined> {
     if (toFormat === ConversionFormats.RAML10) {
         return ConversionSyntaxes.RAML
+    }
+    if (toFormat === ConversionFormats.AMF) {
+        return ConversionSyntaxes.JSON
     }
     const syntaxes = [
         ConversionSyntaxes.JSON,
