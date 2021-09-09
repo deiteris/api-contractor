@@ -13,7 +13,7 @@ import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAc
 import { checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
-import { ChildProcessWithoutNullStreams } from 'child_process'
+import { ChildProcess } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
 import { ApiConsoleProxy } from './features/api-console-proxy'
 
@@ -30,7 +30,7 @@ export const configFile = 'exchange.json' // TODO: May change soon: https://gith
 let client: LanguageClient
 let isClientReady: boolean
 let socket: Socket
-let process: ChildProcessWithoutNullStreams
+let process: ChildProcess
 let apiDocumentController: ApiDocumentController
 
 async function openMainApiSelection(workspaceRoot: string) {
@@ -274,7 +274,7 @@ export async function activate(ctx: ExtensionContext) {
         const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        await fs.writeFile(filePath, data.model)
+        await fs.writeFile(filePath, data.document)
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
@@ -313,6 +313,7 @@ export async function activate(ctx: ExtensionContext) {
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
             const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
+            console.log(data)
             panel.webview.postMessage({ content: data.model })
         }
 
@@ -397,7 +398,7 @@ export async function activate(ctx: ExtensionContext) {
                             }
                             if (e.data.content) {
                                 const loader = document.querySelector('#loader');
-                                const model = JSON.parse(e.data.content);
+                                const model = e.data.content;
                                 apic.amf = model;
                                 loader.style.display = 'none';
                             }
@@ -529,32 +530,16 @@ export async function activate(ctx: ExtensionContext) {
             }).on('error', (err) => { throw err })
 
             server.listen(0, '127.0.0.1', () => {
-                const jarPath = ctx.asAbsolutePath(path.join('assets', 'als-server-assembly.jar'))
+                const jsPath = ctx.asAbsolutePath(path.join('assets', 'als-node-client.min.js'))
 
                 const address = server.address()
                 if (!address) {
                     throw Error
                 }
                 const port = typeof address === 'object' ? address.port : 0
+                const jsArgs: string[] = [ '--port', port.toString() ]
 
-                const options = {
-                    cwd: workspace.rootPath,
-                }
-
-                const jvmArgs = <string[]>workspace.getConfiguration('apiContractor').get('jvm.arguments')
-                const args = jvmArgs.concat([
-                    '-jar',
-                    jarPath,
-                    '--port',
-                    port.toString()
-                ])
-                console.log(`[ALS] Spawning at port: ${port}`)
-                process = child_process.spawn("java", args, options)
-
-                // See https://github.com/aml-org/als/issues/504
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                process.stdout.on('data', () => { })
-                process.stderr.on('data', (data) => { console.log(`[ALS] ${data.toString()}`) })
+                process = child_process.fork(jsPath, jsArgs)
             })
         })
     }

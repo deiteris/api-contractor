@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "1.4.11",
+    "version": "2.0.0",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
@@ -205,7 +205,11 @@
         "express": "^4.17.1",
         "express-http-proxy": "^1.6.2",
         "fs-extra": "^10.0.0",
-        "vscode-languageclient": "^7.0.0"
+        "vscode-languageclient": "^7.0.0",
+        "ajv": "6.12.6",
+        "amf-shacl-node": "^2.0.0",
+        "vscode-jsonrpc": "^6.0.0",
+        "vscode-languageserver-protocol": "^3.16.0"
     },
     "devDependencies": {
         "@types/express": "^4.17.13",
