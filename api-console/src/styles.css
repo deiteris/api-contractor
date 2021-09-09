@@ -204,6 +204,9 @@ html {
 
     /* --api-body-document-media-button-background-color: #2196F3; */
     --app-drawer-width: 350px;
+
+    --api-responses-method-padding-left: 0;
+    --api-responses-method-padding-right: 0;
 }
 
 body {
