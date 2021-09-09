@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.11
+
+### New feature
+
+* Now it is possible to convert the API definition to AMF graph via the conversion command.
+
+### Updates
+
+* AML Language Server updated to [4.1.0](https://github.com/aml-org/als/releases/tag/v4.1.0).
+
+### API preview improvements
+
+* Various improvements to how API Console displays types.
+
 ## 1.4.10
 
 ### Updates
