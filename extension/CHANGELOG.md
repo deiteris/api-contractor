@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking change
+
+The extension now includes and uses NodeJS variant of the ALS by default.
+This results in the following:
+
+* Java is no longer required to run the extension.
+
+* Extension size has been reduced to 2-3mb.
+
+If you experience any issues with NodeJS version or would like to continue using Java version,
+you can specify an absolute path to the ALS jar file with the `apiContractor.jvm.jarPath` setting.
+
+You can download the latest jar file from the [ALS repository](https://github.com/aml-org/als/releases).
+
 ## 1.4.11
 
 ### New feature

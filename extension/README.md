@@ -6,8 +6,6 @@ An extension for Visual Studio Code that provides intellisense, validation and o
 for the API contracts editing using [AML Language Server (ALS)](https://github.com/aml-org/als#aml-language-server)
 and previewing with [the Mulesoft API Console](https://github.com/mulesoft/api-console).
 
-Note: the extension size is 50-60mb due to the JVM binary of language server included into the extension.
-
 ## What types of documents are supported?
 
 See supported types of documents: https://github.com/aml-org/als#what-is-als
@@ -15,9 +13,11 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 ## Requirements
 
 * [Visual Studio Code 1.54 or newer](https://code.visualstudio.com/Download)
-* [Java 1.8 or newer](https://www.java.com/en/download/manual.jsp)
+* \[Optional\] [Java 1.8 or newer](https://www.java.com/en/download/manual.jsp)
 
-If you are working with large APIs and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9).
+\*notes on Java requirement:
+* Java is required only when a path to ALS server jar is specified in the `apiContractor.jvm.jarPath` setting.
+* If you are working with large APIs and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9) and configuring the JVM by specifying arguments in the `apiContractor.jvm.arguments` setting.
 
 ## Available commands
 
@@ -32,6 +32,7 @@ If you are working with large APIs and have limited amount of RAM, consider usin
 * `apiContractor.autoDetectRootApi` - Enables automatic detection and selection of the root API file.
 * `apiContractor.autoRenameRefs` - Configures automatic rename of the referenced files. Works only when the workspace has the root API file set.
 * `apiContractor.notification.noMainApiFileSet` - Enables notification when no main API file is set.
+* `apiContractor.jvm.jarPath` - A path to JVM binary of the ALS. Note that VS Code must be reloaded when changing this value.
 * `apiContractor.jvm.arguments` - Uses provided arguments to execute the JVM version of the language server.
 * `apiContractor.autoReloadApiPreviewOnSave` - Enables automatic reload of the API file preview when it is saved. API file preview tabs must be reopened when this setting is changed. Note: in structured projects where root API file is set, the API file preview will be also reloaded when its referenced files are saved.
 

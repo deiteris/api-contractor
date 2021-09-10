@@ -15,13 +15,34 @@ export function checkJava(): Promise<boolean> {
                 const [major, minor,] = javaVersion.split('.')
                 if (parseInt(major) === 1 && parseInt(minor) < 8) {
                     window.showErrorMessage('Java 1.8+ or OpenJDK 8+ is required to run the language server.')
-                    throw Error
+                    return resolve(false)
                 }
             } else {
                 window.showErrorMessage('Java was not detected. Please download and install Java 1.8+ or OpenJDK 8+.')
-                throw Error
+                return resolve(false)
             }
-            resolve(true)
+            return resolve(true)
+        })
+    })
+}
+
+export function checkJarFile(path: string): Promise<boolean> {
+    return new Promise((resolve) => {
+        const java = child_process.spawn('java', ['-jar', path])
+        let buffer = Buffer.alloc(0)
+        java.stderr.on('data', (data) => {
+            buffer = Buffer.concat([buffer, data])
+        })
+        java.stderr.on('end', () => {
+            const data = buffer.toString()
+            // TODO: .startsWith() doesn't work for some reason
+            if (data.slice(0, 'java.net.ConnectException'.length) === 'java.net.ConnectException') {
+                java.kill()
+                return resolve(true)
+            }
+            window.showErrorMessage(`An error occurred when loading the jar file: ${data}`)
+            java.kill()
+            return resolve(false)
         })
     })
 }

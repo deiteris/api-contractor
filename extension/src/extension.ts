@@ -10,10 +10,10 @@ import * as crypto from 'crypto'
 import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State } from 'vscode-languageclient/node'
-import { checkJava } from './helpers'
+import { checkJarFile, checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
-import { ChildProcess } from 'child_process'
+import { ChildProcess, ChildProcessWithoutNullStreams } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
 import { ApiConsoleProxy } from './features/api-console-proxy'
 
@@ -30,7 +30,7 @@ export const configFile = 'exchange.json' // TODO: May change soon: https://gith
 let client: LanguageClient
 let isClientReady: boolean
 let socket: Socket
-let process: ChildProcess
+let process: ChildProcess | ChildProcessWithoutNullStreams
 let apiDocumentController: ApiDocumentController
 
 async function openMainApiSelection(workspaceRoot: string) {
@@ -190,9 +190,14 @@ async function showTargetSyntaxPick(fromFormat: ConversionFormats, fromSyntax: C
 
 export async function activate(ctx: ExtensionContext) {
 
-    const res = await checkJava()
-    if (!res) {
-        throw Error
+    const jvmPath = <string | undefined>workspace.getConfiguration('apiContractor').get('jvm.jarPath')
+    if (jvmPath) {
+        if (!await checkJava()) {
+            return
+        }
+        if (!await checkJarFile(jvmPath)) {
+            return
+        }
     }
 
     const documentSelector = [
@@ -274,7 +279,11 @@ export async function activate(ctx: ExtensionContext) {
         const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        await fs.writeFile(filePath, data.document)
+        if (jvmPath) {
+            await fs.writeFile(filePath, data.model)
+        } else {
+            await fs.writeFile(filePath, data.document)
+        }
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
@@ -313,8 +322,11 @@ export async function activate(ctx: ExtensionContext) {
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
             const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
-            console.log(data)
-            panel.webview.postMessage({ content: data.model })
+            if (jvmPath) {
+                panel.webview.postMessage({ content: data.model })
+            } else {
+                panel.webview.postMessage({ content: JSON.stringify(data.model) })
+            }
         }
 
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')
@@ -398,7 +410,7 @@ export async function activate(ctx: ExtensionContext) {
                             }
                             if (e.data.content) {
                                 const loader = document.querySelector('#loader');
-                                const model = e.data.content;
+                                const model = JSON.parse(e.data.content);
                                 apic.amf = model;
                                 loader.style.display = 'none';
                             }
@@ -530,16 +542,27 @@ export async function activate(ctx: ExtensionContext) {
             }).on('error', (err) => { throw err })
 
             server.listen(0, '127.0.0.1', () => {
-                const jsPath = ctx.asAbsolutePath(path.join('assets', 'als-node-client.min.js'))
-
                 const address = server.address()
                 if (!address) {
                     throw Error
                 }
                 const port = typeof address === 'object' ? address.port : 0
-                const jsArgs: string[] = [ '--port', port.toString() ]
-
-                process = child_process.fork(jsPath, jsArgs)
+                console.log(`[ALS] Spawning at port: ${port}`)
+                const args = ['--port', port.toString()]
+                if (jvmPath) {
+                    const jvmConfig = <string[]>workspace.getConfiguration('apiContractor').get('jvm.arguments')
+                    process = child_process.spawn("java", [...jvmConfig, '-jar', jvmPath, ...args])
+                    if (!process.stdout || !process.stderr) {
+                        return
+                    }
+                    // See https://github.com/aml-org/als/issues/504
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    process.stdout.on('data', () => { })
+                    process.stderr.on('data', (data) => { console.log(`[ALS] ${data.toString()}`) })
+                    return
+                }
+                const jsPath = ctx.asAbsolutePath(path.join('assets', 'als-node-client.min.js'))
+                process = child_process.fork(jsPath, args)
             })
         })
     }

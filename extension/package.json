@@ -139,6 +139,11 @@
                     "default": true,
                     "description": "Enables notification when no main API file is set."
                 },
+                "apiContractor.jvm.jarPath": {
+                    "scope": "window",
+                    "type": "string",
+                    "description": "A path to JVM binary of the ALS. Note that VS Code must be reloaded when changing this value."
+                },
                 "apiContractor.jvm.arguments": {
                     "scope": "window",
                     "type": "array",
