@@ -1,0 +1,29 @@
+{
+    "name": "@mulesoft/als-node-client",
+    "version": "4.1.0",
+    "description": "ALS Node Client",
+    "main": "./als-node-client.min.js",
+    "author": "ALS team",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/mulesoft/als",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mulesoft/als"
+    },
+    "dependencies": {
+        "ajv": "6.12.6",
+        "amf-shacl-node": "^2.0.0",
+        "vscode-jsonrpc": "^6.0.0",
+        "vscode-languageserver-protocol": "^3.16.0"
+    },
+    "devDependencies": {
+        "webpack": "^5.52.0",
+        "webpack-cli": "^4.8.0"
+    },
+    "scripts": {
+        "compile": "rimraf dist && tsc",
+        "webpack": "webpack --mode production",
+        "webpack-dev": "webpack --mode development",
+        "test-compile": "tsc -p ./"
+    }
+}

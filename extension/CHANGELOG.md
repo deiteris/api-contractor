@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+This is a hotfix release that fixes NodeJS server startup.
+
 ## 2.0.0
 
 ### Breaking change

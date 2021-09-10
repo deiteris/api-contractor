@@ -561,7 +561,7 @@ export async function activate(ctx: ExtensionContext) {
                     process.stderr.on('data', (data) => { console.log(`[ALS] ${data.toString()}`) })
                     return
                 }
-                const jsPath = ctx.asAbsolutePath(path.join('assets', 'als-node-client.min.js'))
+                const jsPath = ctx.asAbsolutePath(path.join('assets', 'server.js'))
                 process = child_process.fork(jsPath, args)
             })
         })
