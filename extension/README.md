@@ -15,8 +15,8 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 * [Visual Studio Code 1.54 or newer](https://code.visualstudio.com/Download)
 * \[Optional\] [Java 1.8 or newer](https://www.java.com/en/download/manual.jsp)
 
-\*notes on Java requirement:
-* Java is required only when a path to ALS server jar is specified in the `apiContractor.jvm.jarPath` setting.
+Notes on Java requirement:
+* Java is required only when a path to ALS server jar is specified in the `apiContractor.jvm.jarPath` setting. The latest jar file can be downloaded from the [extension's github repository](https://github.com/deiteris/api-contractor/blob/master/server/als-server-assembly.jar).
 * If you are working with large APIs and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9) and configuring the JVM by specifying arguments in the `apiContractor.jvm.arguments` setting.
 
 ## Available commands
