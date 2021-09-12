@@ -461,12 +461,6 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     client.onReady().then(async () => {
-        ctx.subscriptions.push(workspace.onDidSaveTextDocument(async () => {
-            // TODO: Apparently the "textDocument/didSave" method has dummy implementation,
-            // https://github.com/aml-org/als/blob/develop/als-server/jvm/src/main/scala/org/mulesoft/als/server/lsp4j/TextDocumentServiceImpl.scala#L88
-            await revalidate()
-        }))
-
         ctx.subscriptions.push(workspace.onDidRenameFiles(async (e) => {
             const autoRenameRefsOpt = workspace.getConfiguration('apiContractor').get('autoRenameRefs')
             switch (autoRenameRefsOpt) {
@@ -477,11 +471,6 @@ export async function activate(ctx: ExtensionContext) {
                     await autoRenameRefs(client, e)
                     break
             }
-            await revalidate()
-        }))
-
-        ctx.subscriptions.push(workspace.onDidDeleteFiles(async () => {
-            await revalidate()
         }))
 
         if (workspace.rootPath) {
@@ -498,33 +487,6 @@ export async function activate(ctx: ExtensionContext) {
             ctx.subscriptions.push(configWatcher)
         }
     })
-
-    async function revalidate() {
-        if (!isClientReady) {
-            return
-        }
-        for (const file of workspace.textDocuments) {
-            if (file.uri.scheme !== 'file' || !documentSelector.some(selector => selector.language === file.languageId)) {
-                return
-            }
-            if (client.diagnostics) {
-                client.diagnostics.set(file.uri, [])
-            }
-            const contents = await fs.readFile(file.fileName, 'utf8')
-            const data = {
-                textDocument: {
-                    uri: `${file.uri.scheme}://${file.uri.path}`,
-                    version: file.version
-                },
-                contentChanges: [
-                    {
-                        text: contents
-                    }
-                ]
-            }
-            client.sendNotification('textDocument/didChange', data)
-        }
-    }
 
     function createServer(): Promise<StreamInfo> {
 
