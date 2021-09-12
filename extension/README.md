@@ -15,9 +15,11 @@ See supported types of documents: https://github.com/aml-org/als#what-is-als
 * [Visual Studio Code 1.54 or newer](https://code.visualstudio.com/Download)
 * \[Optional\] [Java 1.8 or newer](https://www.java.com/en/download/manual.jsp)
 
-Notes on Java requirement:
-* Java is required only when a path to ALS server jar is specified in the `apiContractor.jvm.jarPath` setting. The latest jar file can be downloaded from the [extension's github repository](https://github.com/deiteris/api-contractor/blob/master/server/als-server-assembly.jar).
-* If you are working with large APIs and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9) and configuring the JVM by specifying arguments in the `apiContractor.jvm.arguments` setting.
+## Notes on JS and Java server variants
+
+* Java is required only when a path to the ALS server jar is specified in the `apiContractor.jvm.jarPath` setting. The latest jar file can be downloaded from the [extension's github repository](https://github.com/deiteris/api-contractor/blob/master/server/als-server-assembly.jar).
+* If you are experiencing performance issues with the JS version of the ALS server - consider using Java version.
+* If you are working with large API contracts and have limited amount of RAM, consider using [OpenJ9](https://adoptopenjdk.net/?variant=openjdk16&jvmVariant=openj9) and configuring the JVM by specifying arguments in the `apiContractor.jvm.arguments` setting.
 
 ## Available commands
 
@@ -91,9 +93,7 @@ in selected format will appear.
 Note:
 
 * Due to the differences between formats, some format-specific features may be lost or preserved as metadata in `x-amf` tags that need to be post-processed.
-
 * Unused types will be lost during the conversion.
-
 * If there is a file with the same name as the resulting API file, it will be overwritten.
 
 ##### JVM arguments
