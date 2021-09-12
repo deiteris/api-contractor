@@ -7,7 +7,7 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
-import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern } from 'vscode'
+import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern, ProgressLocation } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
 import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State } from 'vscode-languageclient/node'
 import { checkJarFile, checkJava } from './helpers'
@@ -71,7 +71,9 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
             oldDocument: { uri: client.code2ProtocolConverter.asUri(file.oldUri) },
             newDocument: { uri: client.code2ProtocolConverter.asUri(file.newUri) }
         }
-        const data: RenameFileResponse = await client.sendRequest(RequestMethod.RenameFile, payload)
+        const data: RenameFileResponse = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Renaming references'}, async () => {
+            return client.sendRequest(RequestMethod.RenameFile, payload)
+        })
         if (!data.edits.documentChanges) {
             return
         }
@@ -100,7 +102,9 @@ async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
     }
     const uri = client.code2ProtocolConverter.asUri(document.uri)
     const payload: FileUsagePayload = { uri }
-    const data: FileUsageResponse[] = await client.sendRequest(RequestMethod.FileUsage, payload)
+    const data: FileUsageResponse[] = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Checking file usage'}, async () => {
+        return client.sendRequest(RequestMethod.FileUsage, payload)
+    })
     return data.map((location) => { return location.uri })
 }
 
@@ -276,7 +280,9 @@ export async function activate(ctx: ExtensionContext) {
         }
         const uri = client.code2ProtocolConverter.asUri(document.uri)
         const payload: ConversionPayload = { uri, target, syntax }
-        const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
+        const data: ConversionResponse = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Conversion in progress'}, async () => {
+            return client.sendRequest(RequestMethod.Conversion, payload)
+        })
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
         await fs.writeFile(filePath, data.model)
@@ -317,6 +323,7 @@ export async function activate(ctx: ExtensionContext) {
 
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
+            const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
             if (typeof data.model === 'string') {
                 panel.webview.postMessage({ content: JSON.parse(data.model) })
             } else {
