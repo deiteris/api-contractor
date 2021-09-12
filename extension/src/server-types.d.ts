@@ -40,7 +40,7 @@ export const enum ConversionSyntaxes {
 
 export interface SerializationResponse {
     uri: DocumentUri,
-    model: Array<Record<string, any>>
+    model: string | Array<Record<string, any>>
 }
 
 export interface RenameFileResponse {
@@ -49,8 +49,7 @@ export interface RenameFileResponse {
 
 export interface ConversionResponse {
     uri: DocumentUri,
-    model?: string, // JVM
-    document?: string // JS
+    model: string,
 }
 
 export interface FileUsageResponse {

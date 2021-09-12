@@ -279,11 +279,7 @@ export async function activate(ctx: ExtensionContext) {
         const data: ConversionResponse = await client.sendRequest(RequestMethod.Conversion, payload)
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        if (jvmPath) {
-            await fs.writeFile(filePath, data.model)
-        } else {
-            await fs.writeFile(filePath, data.document)
-        }
+        await fs.writeFile(filePath, data.model)
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
@@ -321,11 +317,10 @@ export async function activate(ctx: ExtensionContext) {
 
         async function sendSerializedDocument() {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
-            const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
-            if (jvmPath) {
-                panel.webview.postMessage({ content: data.model })
+            if (typeof data.model === 'string') {
+                panel.webview.postMessage({ content: JSON.parse(data.model) })
             } else {
-                panel.webview.postMessage({ content: JSON.stringify(data.model) })
+                panel.webview.postMessage({ content: data.model })
             }
         }
 
@@ -410,8 +405,7 @@ export async function activate(ctx: ExtensionContext) {
                             }
                             if (e.data.content) {
                                 const loader = document.querySelector('#loader');
-                                const model = JSON.parse(e.data.content);
-                                apic.amf = model;
+                                apic.amf = e.data.content;
                                 loader.style.display = 'none';
                             }
                             if (e.data.serverUri) {
