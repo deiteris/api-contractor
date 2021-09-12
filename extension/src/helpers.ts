@@ -9,6 +9,7 @@ export function checkJava(): Promise<boolean> {
             buffer = Buffer.concat([buffer, data])
         })
         java.stderr.on('end', () => {
+            java.kill()
             const data = buffer.toString()
             const javaVersion = new RegExp('(java|openjdk) version').test(data) ? data.split(' ')[2].replace(/"/g, '') : ''
             if (javaVersion) {
@@ -34,14 +35,13 @@ export function checkJarFile(path: string): Promise<boolean> {
             buffer = Buffer.concat([buffer, data])
         })
         java.stderr.on('end', () => {
+            java.kill()
             const data = buffer.toString()
             // TODO: .startsWith() doesn't work for some reason
             if (data.slice(0, 'java.net.ConnectException'.length) === 'java.net.ConnectException') {
-                java.kill()
                 return resolve(true)
             }
             window.showErrorMessage(`An error occurred when loading the jar file: ${data}`)
-            java.kill()
             return resolve(false)
         })
     })
