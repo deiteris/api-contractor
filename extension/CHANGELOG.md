@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.0
+
+### New feature
+
+* Show progress status bar on file rename, file usage and conversion requests.
+
+### Fixes
+
+* Improve performance by removing unnecessary revalidation of all project files on save.
+
+* Improve performance of the JS server version when opening the preview in API Console by avoiding reparsing the JSON response.
+
+* Language server output channel will no longer appear automatically on request errors.
+
 ## 2.0.1
 
 This is a hotfix release that fixes NodeJS server startup.
@@ -18,7 +32,7 @@ This results in the following:
 If you experience any issues with NodeJS version or would like to continue using Java version,
 you can specify an absolute path to the ALS jar file with the `apiContractor.jvm.jarPath` setting.
 
-You can download the latest jar file from the [ALS repository](https://github.com/aml-org/als/releases).
+The latest jar file can be downloaded from the [extension's github repository](https://github.com/deiteris/api-contractor/blob/master/server/als-server-assembly.jar).
 
 ## 1.4.11
 
