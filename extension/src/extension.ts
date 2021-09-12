@@ -9,7 +9,7 @@ import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
 import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern, ProgressLocation } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
-import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State } from 'vscode-languageclient/node'
+import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State, RevealOutputChannelOn } from 'vscode-languageclient/node'
 import { checkJarFile, checkJava } from './helpers'
 import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
@@ -232,7 +232,8 @@ export async function activate(ctx: ExtensionContext) {
             closed: () => {
                 return CloseAction.Restart
             }
-        }
+        },
+        revealOutputChannelOn: RevealOutputChannelOn.Never
     }
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, async () => {
