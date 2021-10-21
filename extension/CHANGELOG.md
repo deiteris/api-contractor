@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+Bump package dependencies.
+
 ## 2.1.0
 
 ### New feature
