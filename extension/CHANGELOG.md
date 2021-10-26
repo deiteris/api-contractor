@@ -2,7 +2,11 @@
 
 ## 2.1.1
 
-Bump package dependencies.
+### Updates
+
+* AML Language Server updated to [4.2.0](https://github.com/aml-org/als/releases/tag/v4.2.0).
+
+* Updated package dependencies.
 
 ## 2.1.0
 
