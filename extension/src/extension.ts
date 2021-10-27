@@ -286,7 +286,11 @@ export async function activate(ctx: ExtensionContext) {
         })
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        await fs.writeFile(filePath, data.model)
+        if (data.model) {
+            await fs.writeFile(filePath, data.model)
+        } else {
+            await fs.writeFile(filePath, data.document)
+        }
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
@@ -345,7 +349,7 @@ export async function activate(ctx: ExtensionContext) {
                 if (serializationInProgress) {
                     return
                 }
-                // If current file is referenced, revalidate it manually in order to update the content on the language server
+                // If the current file is not an API file but referenced, revalidate it manually in order to update the content on the language server
                 if (apiDocumentController.fileUsage.length) {
                     const payload: CleanDiagnosticTreePayload = { textDocument: { uri: client.code2ProtocolConverter.asUri(textDocument.uri) } }
                     await client.sendRequest(RequestMethod.CleanDiagnosticTree, payload)

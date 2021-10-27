@@ -49,7 +49,8 @@ export interface RenameFileResponse {
 
 export interface ConversionResponse {
     uri: DocumentUri,
-    model: string,
+    model?: string // In JVM version
+    document?: string // In JS version
 }
 
 export interface FileUsageResponse {
