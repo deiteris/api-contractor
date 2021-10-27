@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.3
+
+This release uses updated AML Language Server that fixes document formatting for JS variant.
+
 ## 2.1.2
 
 This is a hotfix release that fixes document conversion for JS variant.
