@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.4
+
+* AML Language Server updated to [4.2.2](https://github.com/aml-org/als/releases/tag/v4.2.2).
+
+* Updated package dependencies.
+
 ## 2.1.3
 
 This release uses updated AML Language Server that fixes document formatting for JS variant.
