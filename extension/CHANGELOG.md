@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.5
+
+### Fixes
+
+* AML Language Server has been updated with a fix for whitespace characters in path ([GH-680](https://github.com/aml-org/als/issues/680)).
+
+* Extension will no longer try to provide functionality for API files that have unsupported specification versions or formats.
+
+### Features
+
+Added support for AsyncAPI 2.0.
+
 ## 2.1.4
 
 * AML Language Server updated to [4.2.2](https://github.com/aml-org/als/releases/tag/v4.2.2).
