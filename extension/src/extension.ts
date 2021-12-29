@@ -158,8 +158,8 @@ async function readMainApiFile(workspaceRoot: string): Promise<boolean> {
 
 // TODO: Conversion formats can be obtained from client.initializeResult.conversion
 async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFormats | undefined> {
-    if (fromFormat.type === ConversionFormats.RAML08) {
-        window.showErrorMessage('Conversion from RAML 0.8 is not supported.')
+    if ([ConversionFormats.RAML08, ConversionFormats.ASYNC20].includes(<ConversionFormats>fromFormat.type)) {
+        window.showErrorMessage(`Conversion from ${fromFormat.type} is not supported.`)
         return
     }
     const formats = [

@@ -230,6 +230,12 @@ body.vscode-light {
     --http-head-color: rgb(128, 128, 128);
     --http-connect-color: rgb(128, 128, 128);
     --http-trace-color: rgb(128, 128, 128);
+    --http-publish-color: rgb(0, 128, 0);
+    --http-subscribe-color: rgb(33, 150, 243);
+    --http-method-label-subscribe-background-color: var(--http-subscribe-color);
+    --http-method-label-subscribe-color: #fff;
+    --http-method-label-publish-background-color: var(--http-publish-color);
+    --http-method-label-publish-color: #fff;
     --http-method-label-get-background-color: var(--http-get-color);
     --http-method-label-get-color: #fff;
     --http-method-label-post-background-color: var(--http-post-color);
@@ -262,6 +268,12 @@ body.vscode-high-contrast {
     --http-head-color: rgba(128, 128, 128, 0.74);
     --http-connect-color: rgba(128, 128, 128, 0.74);
     --http-trace-color: rgba(128, 128, 128, 0.74);
+    --http-publish-color: rgba(0, 128, 0, 0.74);
+    --http-subscribe-color: rgba(33, 150, 243, 0.74);
+    --http-method-label-subscribe-background-color: var(--http-subscribe-color);
+    --http-method-label-subscribe-color: #fff;
+    --http-method-label-publish-background-color: var(--http-publish-color);
+    --http-method-label-publish-color: #fff;
     --http-method-label-get-background-color: var(--http-get-color);
     --http-method-label-get-color: #fff;
     --http-method-label-post-background-color: var(--http-post-color);

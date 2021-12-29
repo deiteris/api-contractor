@@ -54,6 +54,20 @@ async function _findWebApiFiles(files: string[], workdir: string): Promise<strin
  */
 export async function readApiType(file: string): Promise<ApiFormat | undefined> {
     const size = 50
+    const apiMap: Record<string, Record<string, any>> = {
+        'swagger': {
+            'name': 'OAS',
+            'versions': ['2.0']
+        },
+        'openapi': {
+            'name': 'OAS',
+            'versions': ['3.0']
+        },
+        'asyncapi': {
+            'name': 'ASYNC',
+            'versions': ['2.0']
+        }
+    }
     // todo (pawel): This works 100% for RAML files as they have to have a
     // type and version in the file header. However JSON OAS can have version
     // definition anywhere in the JSON object. It works for lot of APIs
@@ -66,27 +80,35 @@ export async function readApiType(file: string): Promise<ApiFormat | undefined> 
     const data = result.buffer.toString().trim()
     if (data[0] === '{') {
         // OAS 2/3
-        const match = data.match(/"(?:openapi|swagger)"(?:\s*)?:(?:\s*)"(\d\.\d).*"/im)
+        const match = data.match(/"(openapi|swagger|asyncapi)"(?:\s*)?:(?:\s*)"(\d\.\d).*"/im)
         if (!match) {
             return undefined
         }
-        const v = match[1].trim()
+        const name = match[1].trim().toLowerCase()
+        const v = match[2].trim()
+        if (!apiMap[name].versions.includes(v)) {
+            return undefined
+        }
         return {
-            type: `OAS ${v}`,
+            type: `${apiMap[name].name} ${v}`,
             syntax: 'json',
             languageId: 'json-api'
         }
     }
-    const oasMatch = data.match(/(?:openapi|swagger)[^\s*]?:(?:\s*)("|')?(\d\.\d)("|')?/im)
-    if (oasMatch) {
-        const v = oasMatch[2].trim()
+    const match = data.match(/(openapi|swagger|asyncapi)[^\s*]?:(?:\s*)(?:"|')?(\d\.\d)(?:"|')?/im)
+    if (match) {
+        const name = match[1].trim().toLowerCase()
+        const v = match[2].trim()
+        if (!apiMap[name].versions.includes(v)) {
+            return undefined
+        }
         return {
-            type: `OAS ${v}`,
+            type: `${apiMap[name].name} ${v}`,
             syntax: 'yaml',
             languageId: 'yaml-api'
         }
     }
-    const header = data.split('\n')[0].substr(2).trim()
+    const header = data.split('\n')[0].substring(2).trim()
     if (!header || header.indexOf('RAML ') !== 0) {
         return undefined
     }
