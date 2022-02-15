@@ -23,13 +23,23 @@ export interface CleanDiagnosticTreePayload {
     textDocument: TextDocumentIdentifier
 }
 
+export interface DidChangeConfigurationPayload {
+    mainPath?: string,
+    folder: string,
+    dependencies: ConfigurationDependencies[]
+}
+
+interface ConfigurationDependencies {
+    uri: string,
+    scope?: string
+}
+
 export const enum ConversionFormats {
     OAS20 = 'OAS 2.0',
     OAS30 = 'OAS 3.0',
     RAML08 = 'RAML 0.8',
     RAML10 = 'RAML 1.0',
-    ASYNC20 = 'ASYNC 2.0',
-    AMF = 'AMF Graph'
+    ASYNC20 = 'ASYNC 2.0'
 }
 
 export const enum ConversionSyntaxes {
@@ -49,8 +59,7 @@ export interface RenameFileResponse {
 
 export interface ConversionResponse {
     uri: DocumentUri,
-    model?: string // In JVM version
-    document?: string // In JS version
+    model: string
 }
 
 export interface FileUsageResponse {

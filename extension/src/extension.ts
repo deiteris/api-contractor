@@ -7,11 +7,11 @@ import * as url from 'url'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as crypto from 'crypto'
-import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, TextDocument, RelativePattern, ProgressLocation } from 'vscode'
+import { workspace, ExtensionContext, Uri, commands, window, ViewColumn, OpenDialogOptions, WorkspaceEdit, FileRenameEvent, Position, Range, env, Disposable, RelativePattern, ProgressLocation } from 'vscode'
 import { ApiFormat, findApiFiles } from './features/api-search'
-import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, DocumentUri, State, RevealOutputChannelOn } from 'vscode-languageclient/node'
+import { LanguageClient, StreamInfo, LanguageClientOptions, CloseAction, ErrorAction, State, RevealOutputChannelOn, ServerOptions } from 'vscode-languageclient/node'
 import { checkJarFile, checkJava } from './helpers'
-import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, FileUsagePayload, FileUsageResponse, CleanDiagnosticTreePayload } from './server-types'
+import { SerializationPayload, RequestMethod, RenameFilePayload, SerializationResponse, RenameFileResponse, ConversionResponse, ConversionPayload, ConversionFormats, ConversionSyntaxes, CleanDiagnosticTreePayload } from './server-types'
 import { Socket } from 'net'
 import { ChildProcess, ChildProcessWithoutNullStreams } from 'child_process'
 import { ApiDocumentController } from './features/api-document-controller'
@@ -27,11 +27,26 @@ export const enum ExtensionCommands {
 export const SUPPORTED_EXTENSIONS = ['.raml', '.yaml', '.yml', '.json']
 export const configFile = 'exchange.json' // TODO: May change soon: https://github.com/aml-org/als/issues/508#issuecomment-820033766
 
-let client: LanguageClient
-let isClientReady: boolean
+let client: MyLanguageClient
 let socket: Socket
 let process: ChildProcess | ChildProcessWithoutNullStreams
 let apiDocumentController: ApiDocumentController
+
+export class MyLanguageClient extends LanguageClient {
+    private _isReady = false
+
+    constructor(id: string, name: string, serverOptions: ServerOptions, clientOptions: LanguageClientOptions, forceDebug?: boolean) {
+        super(id, name, serverOptions, clientOptions, forceDebug)
+    }
+
+    get isReady() {
+        return this._isReady
+    }
+
+    set isReady(state: boolean) {
+        this._isReady = state
+    }
+}
 
 async function openMainApiSelection(workspaceRoot: string) {
     const options: OpenDialogOptions = {
@@ -62,7 +77,6 @@ async function writeMainApiFile(workspaceRoot: string, filePath: string) {
     }
     const configPath = path.join(workspaceRoot, configFile)
     await fs.writeJSON(configPath, { main })
-    apiDocumentController.updateMainFile(main)
 }
 
 async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
@@ -94,18 +108,6 @@ async function autoRenameRefs(client: LanguageClient, e: FileRenameEvent) {
             workspace.saveAll(false)
         }
     }
-}
-
-async function getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
-    if (!isClientReady) {
-        return []
-    }
-    const uri = client.code2ProtocolConverter.asUri(document.uri)
-    const payload: FileUsagePayload = { uri }
-    const data: FileUsageResponse[] = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Checking file usage'}, async () => {
-        return client.sendRequest(RequestMethod.FileUsage, payload)
-    })
-    return data.map((location) => { return location.uri })
 }
 
 async function checkMainApiFile(workspaceRoot: string) {
@@ -148,10 +150,10 @@ async function readMainApiFile(workspaceRoot: string): Promise<boolean> {
             await fs.remove(configPath)
             throw Error
         }
-        apiDocumentController.updateMainFile(data.main)
+        await apiDocumentController.updateMainFile(data.main)
         return true
     } catch {
-        apiDocumentController.updateMainFile(undefined)
+        await apiDocumentController.updateMainFile(undefined)
         return false
     }
 }
@@ -164,8 +166,7 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
     }
     const formats = [
         ConversionFormats.OAS20,
-        ConversionFormats.OAS30,
-        ConversionFormats.AMF
+        ConversionFormats.OAS30
     ]
     if (fromFormat.type !== ConversionFormats.RAML10) {
         formats.push(ConversionFormats.RAML10)
@@ -176,9 +177,6 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
 async function showTargetSyntaxPick(fromFormat: ConversionFormats, fromSyntax: ConversionSyntaxes, toFormat: ConversionFormats): Promise<ConversionSyntaxes | undefined> {
     if (toFormat === ConversionFormats.RAML10) {
         return ConversionSyntaxes.RAML
-    }
-    if (toFormat === ConversionFormats.AMF) {
-        return ConversionSyntaxes.JSON
     }
     const syntaxes = [
         ConversionSyntaxes.JSON,
@@ -237,7 +235,7 @@ export async function activate(ctx: ExtensionContext) {
     }
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.SetMainApiFile, async () => {
-        if (!isClientReady) {
+        if (!client.isReady) {
             window.showErrorMessage('Language server is not ready yet. Try setting the root API file again in a few seconds.')
             return
         }
@@ -249,7 +247,7 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.SetCurrentAsMainApiFile, async (textEditor) => {
-        if (!isClientReady) {
+        if (!client.isReady) {
             window.showErrorMessage('Language server is not ready yet. Try setting the root API file again in a few seconds.')
             return
         }
@@ -262,7 +260,7 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.Convert, async (textEditor) => {
-        if (!isClientReady) {
+        if (!client.isReady) {
             window.showErrorMessage('Language server is not ready yet. Try converting again in a few seconds.')
             return
         }
@@ -286,17 +284,13 @@ export async function activate(ctx: ExtensionContext) {
         })
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
-        if (data.model) {
-            await fs.writeFile(filePath, data.model)
-        } else {
-            await fs.writeFile(filePath, data.document)
-        }
+        await fs.writeFile(filePath, data.model)
         commands.executeCommand('vscode.open', Uri.file(filePath))
     }))
 
     ctx.subscriptions.push(commands.registerCommand(ExtensionCommands.RestartLanguageServer, async () => {
         // TODO: Must select or receive a workspace folder from a parameter to restart the language server
-        if (!isClientReady) {
+        if (!client.isReady) {
             window.showErrorMessage('Language server is not ready yet. Try restarting again in a few seconds.')
             return
         }
@@ -309,7 +303,7 @@ export async function activate(ctx: ExtensionContext) {
     }))
 
     ctx.subscriptions.push(commands.registerTextEditorCommand(ExtensionCommands.PreviewApiFile, async (textEditor) => {
-        if (!isClientReady) {
+        if (!client.isReady) {
             window.showErrorMessage('Language server is not ready yet. Try previewing again in a few seconds.')
             return
         }
@@ -343,7 +337,7 @@ export async function activate(ctx: ExtensionContext) {
         let serializationInProgress = false
         if (autoReloadPreview) {
             documentWatcher = workspace.onDidSaveTextDocument(async (textDocument) => {
-                if (!isClientReady) {
+                if (!client.isReady) {
                     return
                 }
                 if (serializationInProgress) {
@@ -437,32 +431,25 @@ export async function activate(ctx: ExtensionContext) {
         </html>`
     }))
 
-    apiDocumentController = new ApiDocumentController(documentSelector, getFileUsage)
-    ctx.subscriptions.push(apiDocumentController)
-
-    if (workspace.rootPath) {
-        const res = await readMainApiFile(workspace.rootPath)
-        if (!res) {
-            await checkMainApiFile(workspace.rootPath)
-        }
-    }
-
     // Create the language client and start the client.
-    client = new LanguageClient(
+    client = new MyLanguageClient(
         'apiContractor',
         'API Contractor',
         createServer,
         clientOptions
     )
 
+    apiDocumentController = new ApiDocumentController(documentSelector, client)
+    ctx.subscriptions.push(apiDocumentController)
+
     // Start the client. This will also launch the server
     ctx.subscriptions.push(client.start())
 
     ctx.subscriptions.push(client.onDidChangeState(e => {
         if (e.newState === State.Running) {
-            isClientReady = true
+            client.isReady = true
         } else {
-            isClientReady = false
+            client.isReady = false
         }
     }))
 
@@ -480,15 +467,32 @@ export async function activate(ctx: ExtensionContext) {
         }))
 
         if (workspace.rootPath) {
+            const res = await readMainApiFile(workspace.rootPath)
+            if (!res) {
+                await checkMainApiFile(workspace.rootPath)
+            }
+
             const configWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath, configFile), false, false, false)
-            configWatcher.onDidCreate(() => {
-                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            configWatcher.onDidCreate(async e => {
+                const contents = await workspace.fs.readFile(e)
+                try {
+                    const data = JSON.parse(contents.toString())
+                    await apiDocumentController.updateMainFile(data.main)
+                } catch (e: any) {
+                    await apiDocumentController.updateMainFile(undefined)
+                }
             })
-            configWatcher.onDidChange(() => {
-                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            configWatcher.onDidChange(async e => {
+                const contents = await workspace.fs.readFile(e)
+                try {
+                    const data = JSON.parse(contents.toString())
+                    await apiDocumentController.updateMainFile(data.main)
+                } catch (e: any) {
+                    await apiDocumentController.updateMainFile(undefined)
+                }
             })
-            configWatcher.onDidDelete(() => {
-                commands.executeCommand(ExtensionCommands.RestartLanguageServer)
+            configWatcher.onDidDelete(async () => {
+                await apiDocumentController.updateMainFile(undefined)
             })
             ctx.subscriptions.push(configWatcher)
         }

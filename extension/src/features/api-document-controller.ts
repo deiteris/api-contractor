@@ -1,30 +1,31 @@
 import * as path from 'path'
 import * as fs from 'fs-extra'
-import { commands, Disposable, DocumentFilter, FileSystemWatcher, languages, RelativePattern, StatusBarAlignment, TextDocument, window, workspace } from "vscode"
+import { ExecuteCommandRequest } from 'vscode-languageclient'
+import { commands, Disposable, DocumentFilter, FileSystemWatcher, languages, ProgressLocation, RelativePattern, StatusBarAlignment, TextDocument, Uri, window, workspace } from "vscode"
 import { DocumentUri } from 'vscode-languageclient/node'
-import { ExtensionCommands, SUPPORTED_EXTENSIONS, configFile } from "../extension"
+import { ExtensionCommands, SUPPORTED_EXTENSIONS, configFile, MyLanguageClient } from "../extension"
 import { ApiFormat, readApiType } from "./api-search"
 import { FileFormatStatusBar, MainFileStatusBar } from './status-bar'
+import { DidChangeConfigurationPayload, FileUsagePayload, FileUsageResponse, RequestMethod } from '../server-types'
 
 export class ApiDocumentController extends Disposable {
     private fileFormatStatusBar: FileFormatStatusBar
     private mainFileStatusBar: MainFileStatusBar
     private documentFilter: DocumentFilter[]
     private disposables: Disposable[] = []
-    // TODO: Ugly way to workaround client request. Needs refactor.
-    private getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>
     private mainFileWatcher: FileSystemWatcher | undefined
+    private client: MyLanguageClient
     public mainFile: string | undefined
     public fileUsage: DocumentUri[] = []
 
-    constructor(documentFilter: DocumentFilter[], getFileUsage: (document: TextDocument) => Promise<DocumentUri[]>) {
+    constructor(documentFilter: DocumentFilter[], client: MyLanguageClient) {
         super(() => { this.dispose() })
         this.documentFilter = documentFilter
         this.fileFormatStatusBar = new FileFormatStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 2), ExtensionCommands.Convert, 'API format of the current file. Click to convert to different format.')
         this.disposables.push(this.fileFormatStatusBar)
         this.mainFileStatusBar = new MainFileStatusBar(window.createStatusBarItem(StatusBarAlignment.Right, 1), ExtensionCommands.SetMainApiFile, 'Current root API file. Click to select root API file.')
         this.disposables.push(this.mainFileStatusBar)
-        this.getFileUsage = getFileUsage
+        this.client = client
 
         this.registerEvents()
         this.init()
@@ -45,18 +46,44 @@ export class ApiDocumentController extends Disposable {
         this.changeApiFormat(apiFormat)
     }
 
-    updateMainFile(filename: string | undefined) {
+    public async updateMainFile(filePath: string | undefined) {
         if (this.mainFileWatcher) {
             this.mainFileWatcher.dispose()
         }
-        if (filename) {
-            this.mainFileWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath!, filename), true, true, false)
+        if (filePath) {
+            this.mainFileWatcher = workspace.createFileSystemWatcher(new RelativePattern(workspace.rootPath!, filePath), true, true, false)
             this.mainFileWatcher.onDidDelete(async () => {
                 const configPath = path.join(workspace.rootPath!, configFile)
                 await fs.remove(configPath)
             })
         }
-        this.mainFile = filename
+        if (this.client.isReady) {
+            if (filePath) {
+                const uri = Uri.file(path.join(workspace.rootPath!, filePath))
+                const d: any = await this.client.sendRequest('getWorkspaceConfiguration', {textDocument: { uri: this.client.code2ProtocolConverter.asUri(uri) }})
+                await this.client.sendRequest(ExecuteCommandRequest.type, {
+                    command: 'didChangeConfiguration',
+                    arguments: <DidChangeConfigurationPayload[]>[
+                        {
+                            ...d.configuration,
+                            mainPath: filePath
+                        }
+                    ]
+                })
+            } else {
+                // TODO: If there will be support for extensions - all dependencies will probably be reset in this case
+                await this.client.sendRequest(ExecuteCommandRequest.type, {
+                    command: 'didChangeConfiguration',
+                    arguments: <DidChangeConfigurationPayload[]>[
+                        {
+                            folder: this.client.code2ProtocolConverter.asUri(Uri.file(workspace.rootPath!)),
+                            mainPath: ''
+                        }
+                    ]
+                })
+            }
+        }
+        this.mainFile = filePath
         this.mainFileStatusBar.updateText(this.mainFile)
     }
 
@@ -103,6 +130,18 @@ export class ApiDocumentController extends Disposable {
             return
         }
         this.fileFormatStatusBar.hide()
+    }
+
+    private async getFileUsage(document: TextDocument): Promise<DocumentUri[]> {
+        if (!this.client.isReady) {
+            return []
+        }
+        const uri = this.client.code2ProtocolConverter.asUri(document.uri)
+        const payload: FileUsagePayload = { uri }
+        const data: FileUsageResponse[] = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Checking file usage'}, async () => {
+            return this.client.sendRequest(RequestMethod.FileUsage, payload)
+        })
+        return data.map((location) => { return location.uri })
     }
 
     private registerEvents() {
