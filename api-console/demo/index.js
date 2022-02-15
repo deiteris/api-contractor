@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const server = require('es-dev-server');
+const server = require('@web/dev-server');
 
-const config = server.createConfig({
+const config = {
   watch: true,
   nodeResolve: true,
   appIndex: 'index.html',
@@ -12,5 +12,5 @@ const config = server.createConfig({
   babelExclude: [
     '**/vendor.js'
   ]
-});
-server.startServer(config);
+}
+server.startDevServer({config});
