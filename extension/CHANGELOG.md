@@ -4,6 +4,8 @@
 
 * AML Language Server updated to [5.0.1](https://github.com/aml-org/als/releases/tag/v5.0.1).
 
+* The API Console updated to [6.5.9](https://github.com/mulesoft/api-console/releases/tag/6.5.9).
+
 * Updated package dependencies.
 
 ## 2.1.5
