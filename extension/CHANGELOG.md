@@ -1,8 +1,16 @@
 # Changelog
 
+## 2.1.9
+
+* AML Language Server updated to [5.1.4](https://github.com/aml-org/als/releases/tag/v5.1.4).
+
+* Updated package dependencies.
+
 ## 2.1.8
 
 * AML Language Server updated to [5.1.1](https://github.com/aml-org/als/releases/tag/v5.1.1).
+
+* The API Console updated to [6.6.12](https://github.com/mulesoft/api-console/releases/tag/v6.6.12).
 
 * Updated package dependencies.
 
@@ -16,7 +24,7 @@
 
 * AML Language Server updated to [5.0.1](https://github.com/aml-org/als/releases/tag/v5.0.1).
 
-* The API Console updated to [6.5.9](https://github.com/mulesoft/api-console/releases/tag/6.5.9).
+* The API Console updated to [6.6.9](https://github.com/mulesoft/api-console/releases/tag/v6.6.9).
 
 * Updated package dependencies.
 
@@ -108,7 +116,7 @@ The latest jar file can be downloaded from the [extension's github repository](h
 
 * AML Language Server updated to [3.2.10](https://github.com/aml-org/als/releases/tag/v3.2.10).
 
-* The API Console updated to [6.5.2](https://github.com/mulesoft/api-console/releases/tag/6.5.2).
+* The API Console updated to [6.5.2](https://github.com/mulesoft/api-console/releases/tag/v6.5.2).
 
 ### API preview improvements
 
