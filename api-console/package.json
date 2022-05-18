@@ -11,8 +11,7 @@
     "url": "https://github.com/deiteris/api-contractor.git"
   },
   "dependencies": {
-    "api-console": "^6.6.12",
-    "fs-extra": "^10.0.1"
+    "api-console": "^6.6.12"
   },
   "devDependencies": {
     "@babel/core": "^7.17.9",
@@ -35,6 +34,7 @@
     "rollup-plugin-cpy": "^2.0.1",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
+    "fs-extra": "^10.0.1",
     "uglify-js": "^3.15.4"
   },
   "resolutions": {
