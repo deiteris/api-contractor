@@ -38,8 +38,11 @@
     "uglify-js": "^3.15.5"
   },
   "resolutions": {
-    "api-console/**/underscore": "^1.13.1",
-    "api-console/**/node-fetch": "^2.6.1"
+    "api-console/**/@api-components/api-navigation": "git+https://github.com/deiteris/api-navigation.git",
+    "api-console/**/@api-components/api-type-document": "git+https://github.com/deiteris/api-type-document.git",
+    "api-console/**/@advanced-rest-client/arc-marked": "git+https://github.com/deiteris/arc-marked.git",
+    "api-console/**/@advanced-rest-client/code-mirror-linter": "git+https://github.com/deiteris/code-mirror-linter.git",
+    "api-console/**/@advanced-rest-client/oauth-authorization": "git+https://github.com/deiteris/oauth-authorization.git"
   },
   "scripts": {
     "start": "node demo/index.js",

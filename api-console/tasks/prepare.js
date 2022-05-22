@@ -10,7 +10,7 @@ const CryptoFiles = [
 ];
 
 const CmFiles = [
-  'jsonlint/web/jsonlint.js',
+  'jsonlint-mod/web/jsonlint.js',
   'codemirror/lib/codemirror.js',
   'codemirror/addon/mode/loadmode.js',
   'codemirror/mode/meta.js',
