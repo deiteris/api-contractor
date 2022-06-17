@@ -267,10 +267,6 @@ export async function activate(ctx: ExtensionContext) {
             window.showErrorMessage('Language server is not ready yet. Try converting again in a few seconds.')
             return
         }
-        if (!apiDocumentController.mainFile) {
-            window.showErrorMessage('Please select the main API file to perform the conversion.')
-            return
-        }
         const document = textEditor.document
         const apiFormat = await apiDocumentController.readApiFileFormat(document)
         if (!apiFormat) {
