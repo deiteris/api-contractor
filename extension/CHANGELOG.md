@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.12
+
+* Conversion feature no longer requires main API file selected.
+
+* Conversion feature allows conversion to AMF Graph format.
+
 ## 2.1.11
 
 * AML Language Server updated to [5.1.5](https://github.com/aml-org/als/releases/tag/v5.1.5).
