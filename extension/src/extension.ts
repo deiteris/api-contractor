@@ -165,6 +165,7 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
         return
     }
     const formats = [
+        ConversionFormats.AMF,
         ConversionFormats.OAS20,
         ConversionFormats.OAS30
     ]
@@ -177,6 +178,8 @@ async function showTargetFormatPick(fromFormat: ApiFormat): Promise<ConversionFo
 async function showTargetSyntaxPick(fromFormat: ConversionFormats, fromSyntax: ConversionSyntaxes, toFormat: ConversionFormats): Promise<ConversionSyntaxes | undefined> {
     if (toFormat === ConversionFormats.RAML10) {
         return ConversionSyntaxes.RAML
+    } else if (toFormat === ConversionFormats.AMF) {
+        return ConversionSyntaxes.JSON
     }
     const syntaxes = [
         ConversionSyntaxes.JSON,
@@ -282,10 +285,23 @@ export async function activate(ctx: ExtensionContext) {
             return
         }
         const uri = client.code2ProtocolConverter.asUri(document.uri)
-        const payload: ConversionPayload = { uri, target, syntax }
-        const data: ConversionResponse = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Conversion in progress'}, async () => {
-            return client.sendRequest(RequestMethod.Conversion, payload)
-        })
+
+        let data: SerializationResponse | ConversionResponse
+        if (target === ConversionFormats.AMF) {
+            const payload: SerializationPayload = { documentIdentifier: { uri } }
+            data = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Conversion in progress'}, async () => {
+                return client.sendRequest(RequestMethod.Serialization, payload)
+            })
+            if (typeof data.model === 'object') {
+                data.model = JSON.stringify(data.model, null, 4)
+            }
+        } else {
+            const payload: ConversionPayload = { uri, target, syntax }
+            data = await window.withProgress({location: ProgressLocation.Window, cancellable: false, title: 'Conversion in progress'}, async () => {
+                return client.sendRequest(RequestMethod.Conversion, payload)
+            })
+        }
+        
         const filename = path.basename(document.fileName, path.extname(document.fileName))
         const filePath = path.join(path.dirname(document.fileName), `${filename}.${syntax}`)
         await fs.writeFile(filePath, data.model)
@@ -330,7 +346,7 @@ export async function activate(ctx: ExtensionContext) {
             if (typeof data.model === 'string') {
                 panel.webview.postMessage({ content: JSON.parse(data.model) })
             } else {
-                panel.webview.postMessage({ content: data.model })
+            panel.webview.postMessage({ content: data.model })
             }
         }
 

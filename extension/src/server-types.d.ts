@@ -35,6 +35,7 @@ interface ConfigurationDependencies {
 }
 
 export const enum ConversionFormats {
+    AMF = 'AMF Graph',
     OAS20 = 'OAS 2.0',
     OAS30 = 'OAS 3.0',
     RAML08 = 'RAML 0.8',
