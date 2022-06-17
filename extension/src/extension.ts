@@ -340,10 +340,9 @@ export async function activate(ctx: ExtensionContext) {
             const payload: SerializationPayload = { documentIdentifier: { uri } }
             const data: SerializationResponse = await client.sendRequest(RequestMethod.Serialization, payload)
             if (typeof data.model === 'string') {
-                panel.webview.postMessage({ content: JSON.parse(data.model) })
-            } else {
-            panel.webview.postMessage({ content: data.model })
+                data.model = JSON.parse(data.model)
             }
+            panel.webview.postMessage({ content: data.model })
         }
 
         const autoReloadPreview = workspace.getConfiguration('apiContractor').get('autoReloadApiPreviewOnSave')

@@ -40,6 +40,13 @@ export class ApiDocumentController extends Disposable {
     }
 
     private async handleApiDocument(document: TextDocument) {
+        if (!SUPPORTED_EXTENSIONS.includes(path.extname(document.fileName))) {
+            return
+        }
+        const activeDocument = window.activeTextEditor?.document
+        if (!activeDocument || document.uri !== activeDocument.uri) {
+            return
+        }
         const apiFormat = await this.readApiFileFormat(document)
         document = await this.changeDocumentLanguage(document, apiFormat)
         this.toggleMainFileStatusBar(document)
@@ -147,21 +154,18 @@ export class ApiDocumentController extends Disposable {
     private registerEvents() {
         this.disposables.push(window.onDidChangeActiveTextEditor(async (editor) => {
             const document = editor?.document
-            if (document) {
-                this.fileUsage = await this.getFileUsage(document)
-                if (SUPPORTED_EXTENSIONS.includes(path.extname(document.fileName))) {
-                    await this.handleApiDocument(document)
-                    return
-                }
+            
+            if (!document) {
+                this.mainFileStatusBar.hide()
+                this.fileFormatStatusBar.hide()
+                return
             }
-            this.mainFileStatusBar.hide()
-            this.fileFormatStatusBar.hide()
+
+            this.fileUsage = await this.getFileUsage(document)
+            await this.handleApiDocument(document)
         }))
         this.disposables.push(workspace.onDidSaveTextDocument(async (document) => {
-            const activeDocument = window.activeTextEditor?.document
-            if (activeDocument && SUPPORTED_EXTENSIONS.includes(path.extname(activeDocument.fileName)) && activeDocument.fileName === document.fileName) {
-                await this.handleApiDocument(activeDocument)
-            }
+            await this.handleApiDocument(document)
         }))
     }
 
