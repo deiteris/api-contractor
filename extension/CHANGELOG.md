@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.13
+
+* The API Console updated to [6.6.17](https://github.com/mulesoft/api-console/releases/tag/v6.6.17).
+
+### API preview improvements
+
+* Password field for OAuth 2.0 flows now appears as masked input.
+
+* Client ID field for OAuth 2.0 flows now appears as normal input.
+
+* Discriminator field and value properties are now visible for the object types.
+
 ## 2.1.12
 
 * Conversion feature no longer requires main API file selected.
