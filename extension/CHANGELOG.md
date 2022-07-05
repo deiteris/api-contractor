@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.14
+
+* AML Language Server updated to [5.1.6](https://github.com/aml-org/als/releases/tag/v5.1.6).
+
+### API preview improvements
+
+Union types are now displayed as a dropdown list instead of separate buttons.
+
 ## 2.1.13
 
 * The API Console updated to [6.6.17](https://github.com/mulesoft/api-console/releases/tag/v6.6.17).
