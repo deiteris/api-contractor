@@ -9,6 +9,10 @@ export default css`
   border-right: 1px var(--apic-drawer-content-wrapper-border-color) solid;
 }
 
+.api-docs .inline-request {
+  max-width: 450px;
+}
+
 .powered-by {
   padding: 12px 0px;
   border-top: 1px var(--apic-powered-by-border-color) solid;
