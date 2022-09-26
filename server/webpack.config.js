@@ -11,7 +11,8 @@ const config = {
     output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
         path: path.resolve(__dirname, 'dist'),
-        filename: 'server.js'
+        filename: 'server.js',
+        libraryTarget: 'commonjs2'
     }
 };
 module.exports = config;
