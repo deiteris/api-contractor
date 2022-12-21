@@ -3,7 +3,7 @@
     "displayName": "API Contractor",
     "description": "Define, edit, validate and preview your API contracts in RAML and OpenAPI (Swagger)",
     "publisher": "deiteris",
-    "version": "2.1.19",
+    "version": "2.1.20",
     "license": "MIT",
     "icon": "images/icon.png",
     "engines": {
