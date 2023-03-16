@@ -1,6 +1,6 @@
 {
     "name": "@mulesoft/als-node-client",
-    "version": "5.3.4",
+    "version": "5.3.5",
     "description": "ALS Node Client",
     "main": "./als-node-client.min.js",
     "author": "ALS team",
@@ -11,10 +11,10 @@
         "url": "https://github.com/mulesoft/als"
     },
     "dependencies": {
-        "@aml-org/als-node-client": "^5.3.4"
+        "@aml-org/als-node-client": "^5.3.5"
     },
     "devDependencies": {
-        "webpack": "^5.75.0",
+        "webpack": "^5.76.2",
         "webpack-cli": "^5.0.1"
     },
     "scripts": {
