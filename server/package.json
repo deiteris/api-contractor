@@ -11,11 +11,11 @@
         "url": "https://github.com/mulesoft/als"
     },
     "dependencies": {
-        "@aml-org/als-node-client": "^5.3.5"
+        "@aml-org/als-node-client": "^5.3.8"
     },
     "devDependencies": {
-        "webpack": "^5.76.2",
-        "webpack-cli": "^5.0.1"
+        "webpack": "^5.82.1",
+        "webpack-cli": "^5.1.1"
     },
     "scripts": {
         "webpack": "webpack --mode production",
