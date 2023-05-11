@@ -135,10 +135,9 @@ When an API file is opened, a button for previewing the current API file will ap
 
 ## Known issues
 
-### Pattern error with valid named capture groups
+### Pattern error with valid named capture groups (JVM version)
 
-Since the extension uses JVM version of the language server (JS version is experimental), the patterns are validated
-according to the Java rules. See [Java Class Pattern documentation](https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java/util/regex/Pattern.html).
+In Java version, patterns are validated according to the Java rules. See [Java Class Pattern documentation](https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java/util/regex/Pattern.html).
 If a named capture group is [valid according to the ECMA-262 regular expression dialect](http://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.7.3.8), remove it to proceed further with validation, then change it back once the document is valid.
 
 ## FAQ
