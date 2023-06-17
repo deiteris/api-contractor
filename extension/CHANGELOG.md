@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.24
+
+* AML Language Server updated to [5.4.1-0](https://github.com/aml-org/als/releases/tag/v5.4.1-0).
+
 ## 2.1.23
 
 * AML Language Server updated to [5.3.8](https://github.com/aml-org/als/releases/tag/v5.3.8).
